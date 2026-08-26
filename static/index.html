@@ -1,0 +1,667 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>বই অনুসন্ধান</title>
+<style>
+:root{
+  --bg:#f6f7f9; --panel:#ffffff; --ink:#15181d; --muted:#666f7d; --faint:#8b93a1;
+  --line:#e3e6eb; --line-soft:#eef0f4; --accent:#1f6f4a; --accent-ink:#ffffff;
+  --accent-soft:#e8f3ec; --chip:#f1f3f6; --danger:#a12b2b; --danger-soft:#fbeceb;
+  --shadow:0 1px 2px rgba(16,24,40,.05), 0 8px 24px -12px rgba(16,24,40,.18);
+  --radius:14px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0f1216; --panel:#171b21; --ink:#e9ecf1; --muted:#9aa3b1; --faint:#79828f;
+    --line:#262c35; --line-soft:#1e232a; --accent:#4cae7f; --accent-ink:#0b1a12;
+    --accent-soft:#16261d; --chip:#20262e; --danger:#e08d8d; --danger-soft:#2a1a1a;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"Noto Sans Bengali","Hind Siliguri","Kalpurush",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:820px;margin:0 auto;padding:32px 20px 96px}
+
+/* ---------------------------------------------------------------- header */
+header{text-align:center;margin:24px 0 22px}
+h1{font-size:1.9rem;font-weight:700;margin:0 0 6px;letter-spacing:-.01em}
+.tagline{color:var(--muted);font-size:.95rem;margin:0}
+
+/* ---------------------------------------------------------------- search */
+form.search{display:flex;gap:10px;align-items:stretch;margin:0 0 12px}
+.field{position:relative;flex:1;display:flex;align-items:center}
+.field svg{position:absolute;inset-inline-start:14px;width:18px;height:18px;color:var(--faint);pointer-events:none}
+#q{
+  width:100%;padding:15px 16px 15px 42px;font:inherit;color:var(--ink);
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);outline:none;transition:border-color .15s,box-shadow .15s;
+}
+#q::placeholder{color:var(--faint)}
+#q:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+#clear{
+  position:absolute;inset-inline-end:10px;border:0;background:transparent;color:var(--faint);
+  font-size:1.2rem;line-height:1;cursor:pointer;padding:6px;border-radius:8px;display:none;
+}
+#clear:hover{color:var(--ink);background:var(--chip)}
+button.go{
+  flex:0 0 auto;min-width:118px;padding:0 22px;font:inherit;font-weight:600;
+  color:var(--accent-ink);background:var(--accent);border:0;border-radius:var(--radius);
+  cursor:pointer;box-shadow:var(--shadow);transition:filter .15s,opacity .15s;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+}
+button.go:hover:not(:disabled){filter:brightness(1.08)}
+button.go:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.go:disabled{opacity:.6;cursor:not-allowed}
+.spin{width:15px;height:15px;border:2px solid rgba(255,255,255,.35);border-top-color:currentColor;
+  border-radius:50%;animation:spin .7s linear infinite;display:none}
+button.go.busy .spin{display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---------------------------------------------------------------- chips / notices */
+.examples{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px}
+.examples span{color:var(--faint);font-size:.85rem;align-self:center;margin-inline-end:2px}
+.examples button{
+  font:inherit;font-size:.85rem;color:var(--muted);background:var(--chip);border:1px solid transparent;
+  padding:6px 12px;border-radius:999px;cursor:pointer;transition:color .15s,border-color .15s;
+}
+.examples button:hover{color:var(--ink);border-color:var(--line)}
+
+/* ---------------------------------------------------------------- options */
+.optbar{display:flex;justify-content:flex-end;margin:-8px 2px 14px}
+.optbar button{
+  font:inherit;font-size:.85rem;color:var(--muted);background:transparent;border:0;
+  cursor:pointer;padding:6px 10px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;
+}
+.optbar button:hover{color:var(--ink);background:var(--chip)}
+.optbar button::after{content:"▾";font-size:.7rem;transition:transform .18s}
+.optbar button[aria-expanded="true"]::after{transform:rotate(180deg)}
+.optbar .count{background:var(--accent-soft);color:var(--accent);font-size:.72rem;
+  padding:1px 7px;border-radius:999px;font-weight:600}
+
+.panel{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:18px 20px;margin:0 0 18px;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px 24px;
+  animation:rise .25s ease both;
+}
+.opt{min-width:0}
+.opt > label,.opt .lab{display:block;font-size:.82rem;font-weight:600;color:var(--ink);margin-bottom:7px}
+.opt .hint{display:block;font-size:.76rem;color:var(--faint);margin-top:6px;line-height:1.5}
+.opt.wide{grid-column:1/-1}
+
+.seg{display:inline-flex;background:var(--chip);border-radius:10px;padding:3px;gap:2px;max-width:100%}
+.seg button{
+  flex:1;font:inherit;font-size:.83rem;color:var(--muted);background:transparent;border:0;
+  padding:7px 13px;border-radius:8px;cursor:pointer;white-space:nowrap;transition:color .15s,background .15s;
+}
+.seg button:hover:not([aria-pressed="true"]):not(:disabled){color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--panel);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(16,24,40,.08)}
+.seg button:disabled{opacity:.45;cursor:not-allowed}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+
+.switch{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:.88rem;color:var(--ink)}
+.switch input{position:absolute;opacity:0;width:0;height:0}
+.switch .track{width:38px;height:22px;border-radius:999px;background:var(--line);flex:0 0 auto;
+  position:relative;transition:background .18s}
+.switch .track::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;
+  border-radius:50%;background:var(--panel);box-shadow:0 1px 3px rgba(16,24,40,.3);transition:transform .18s}
+.switch input:checked + .track{background:var(--accent)}
+.switch input:checked + .track::after{transform:translateX(16px)}
+.switch input:focus-visible + .track{outline:2px solid var(--accent);outline-offset:2px}
+.switch input:disabled + .track{opacity:.45}
+
+.opt input[type=text]{
+  width:100%;padding:9px 12px;font:inherit;font-size:.88rem;color:var(--ink);
+  background:var(--bg);border:1px solid var(--line);border-radius:10px;outline:none;
+}
+.opt input[type=text]:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.panel .reset{grid-column:1/-1;justify-self:start;font:inherit;font-size:.8rem;color:var(--muted);
+  background:transparent;border:0;cursor:pointer;padding:4px 0;text-decoration:underline}
+.panel .reset:hover{color:var(--ink)}
+
+/* ---------------------------------------------------------------- plan (verbose) */
+.planbox{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:16px 20px;margin-bottom:16px;font-size:.85rem}
+.planbox h3{margin:0 0 12px;font-size:.82rem;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.06em}
+.planbox dl{display:grid;grid-template-columns:auto 1fr;gap:7px 16px;margin:0}
+.planbox dt{color:var(--faint);white-space:nowrap}
+.planbox dd{margin:0;color:var(--ink);word-break:break-word}
+.planbox code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82em;
+  background:var(--chip);padding:1px 6px;border-radius:5px}
+
+.breakdown{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px 10px;font-size:.76rem;color:var(--faint);
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.breakdown span{background:var(--chip);padding:3px 8px;border-radius:6px}
+
+.notice{
+  display:flex;gap:10px;align-items:center;padding:12px 16px;border-radius:var(--radius);
+  background:var(--panel);border:1px solid var(--line);color:var(--muted);font-size:.9rem;margin-bottom:18px;
+}
+.notice.err{background:var(--danger-soft);border-color:transparent;color:var(--danger)}
+.notice .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex:0 0 auto;animation:pulse 1.4s ease-in-out infinite}
+.notice.err .dot{background:var(--danger);animation:none}
+@keyframes pulse{0%,100%{opacity:.35}50%{opacity:1}}
+[hidden]{display:none !important}
+
+/* ---------------------------------------------------------------- status line */
+.summary{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;
+  color:var(--muted);font-size:.88rem;margin:0 2px 14px}
+.summary b{color:var(--ink);font-weight:600}
+
+/* ---------------------------------------------------------------- skeleton */
+.skel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:20px;margin-bottom:14px;box-shadow:var(--shadow)}
+.bar{height:12px;border-radius:6px;margin-bottom:10px;
+  background:linear-gradient(90deg,var(--line-soft) 25%,var(--chip) 37%,var(--line-soft) 63%);
+  background-size:400% 100%;animation:shimmer 1.4s ease infinite}
+@keyframes shimmer{0%{background-position:100% 0}100%{background-position:0 0}}
+
+/* ---------------------------------------------------------------- result card */
+.card{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:20px 22px;margin-bottom:14px;box-shadow:var(--shadow);
+  animation:rise .35s ease both;
+}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.card-top{display:flex;gap:14px;align-items:flex-start}
+.rank{
+  flex:0 0 auto;width:30px;height:30px;border-radius:9px;background:var(--accent-soft);
+  color:var(--accent);font-weight:700;font-size:.9rem;display:grid;place-items:center;margin-top:2px;
+}
+.title{font-size:1.12rem;font-weight:700;margin:0;line-height:1.4}
+.byline{color:var(--muted);font-size:.92rem;margin:2px 0 0}
+.byline b{color:var(--ink);font-weight:600}
+.meta{display:flex;flex-wrap:wrap;gap:4px 12px;color:var(--faint);font-size:.83rem;margin-top:6px}
+.meta .out{color:var(--danger)}
+
+.snippet{margin:12px 0 0;color:var(--muted);font-size:.94rem}
+.snippet.clamp{cursor:pointer;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.tag{font-size:.8rem;padding:4px 10px;border-radius:999px;background:var(--chip);color:var(--muted)}
+.tag.genre{background:var(--accent-soft);color:var(--accent)}
+
+.why{margin-top:12px;border-top:1px solid var(--line-soft);padding-top:10px}
+.why summary{cursor:pointer;font-size:.85rem;color:var(--muted);list-style:none;
+  display:flex;align-items:center;gap:6px}
+.why summary::-webkit-details-marker{display:none}
+.why summary::before{content:"▸";color:var(--faint);transition:transform .15s}
+.why[open] summary::before{transform:rotate(90deg)}
+.why summary:hover{color:var(--ink)}
+.why p{margin:10px 0 0;font-size:.9rem;color:var(--muted)}
+.why .chan{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.why .chan span{font-size:.75rem;padding:3px 9px;border-radius:6px;background:var(--chip);color:var(--faint)}
+
+.relevance{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:.78rem;color:var(--faint)}
+.relevance .track{flex:1;height:5px;border-radius:3px;background:var(--line-soft);overflow:hidden}
+.relevance .fill{height:100%;background:var(--accent);border-radius:3px;transition:width .5s ease}
+
+/* ---------------------------------------------------------------- empty */
+.empty{text-align:center;padding:56px 20px;color:var(--muted)}
+.empty h2{font-size:1.05rem;margin:0 0 6px;color:var(--ink);font-weight:600}
+.empty p{margin:0;font-size:.92rem}
+
+@media (max-width:560px){
+  .wrap{padding:20px 14px 72px}
+  button.go{min-width:auto;padding:0 16px}
+  .card{padding:16px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>বাংলা বই অনুসন্ধান</h1>
+    <p class="tagline">বিষয়, লেখক বা প্রশ্ন লিখে খুঁজুন — সহজ ভাষায়</p>
+  </header>
+
+  <form class="search" id="form" autocomplete="off">
+    <div class="field">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path>
+      </svg>
+      <input id="q" name="q" type="search" enterkeyhint="search"
+             placeholder="যেমন: মুক্তিযুদ্ধের ইতিহাস নিয়ে লেখা বই"
+             aria-label="অনুসন্ধানের প্রশ্ন">
+      <button type="button" id="clear" aria-label="মুছে ফেলুন">×</button>
+    </div>
+    <button class="go" id="go" type="submit">
+      <span class="spin" aria-hidden="true"></span><span id="go-label">অনুসন্ধান</span>
+    </button>
+  </form>
+
+  <div class="examples" id="examples">
+    <span>চেষ্টা করুন:</span>
+  </div>
+
+  <div class="optbar">
+    <button type="button" id="opt-toggle" aria-expanded="false" aria-controls="panel">
+      বিকল্প <span class="count" id="opt-count" hidden></span>
+    </button>
+  </div>
+
+  <div class="panel" id="panel" hidden>
+    <div class="opt">
+      <span class="lab" id="lab-topk">ফলাফল সংখ্যা</span>
+      <div class="seg" id="seg-topk" role="group" aria-labelledby="lab-topk">
+        <button type="button" data-value="5">৫</button>
+        <button type="button" data-value="10">১০</button>
+        <button type="button" data-value="20">২০</button>
+        <button type="button" data-value="30">৩০</button>
+      </div>
+      <span class="hint">কতগুলো বই দেখানো হবে (<code>--top-k</code>)</span>
+    </div>
+
+    <div class="opt">
+      <span class="lab" id="lab-plan">প্রশ্ন বিশ্লেষণ</span>
+      <div class="seg" id="seg-plan" role="group" aria-labelledby="lab-plan">
+        <button type="button" data-value="never">নিয়মভিত্তিক</button>
+        <button type="button" data-value="auto">প্রয়োজনে</button>
+        <button type="button" data-value="always">সর্বদা</button>
+      </div>
+      <span class="hint" id="hint-plan">নিয়ম যা পারে না, তা LLM দিয়ে বোঝানো
+        (<code>--no-plan</code> / <code>--plan</code> / <code>--force-plan</code>)</span>
+    </div>
+
+    <div class="opt">
+      <span class="lab">দ্বিতীয় ধাপ</span>
+      <label class="switch">
+        <input type="checkbox" id="opt-rerank" checked>
+        <span class="track"></span><span>পুনঃক্রম সক্রিয়</span>
+      </label>
+      <span class="hint" id="hint-rerank">ক্রস-এনকোডার দিয়ে নির্ভুলতা বাড়ে, একটু ধীর
+        (<code>--no-rerank</code>)</span>
+    </div>
+
+    <div class="opt">
+      <span class="lab">প্রদর্শন</span>
+      <label class="switch">
+        <input type="checkbox" id="opt-verbose">
+        <span class="track"></span><span>বিস্তারিত তথ্য</span>
+      </label>
+      <span class="hint">কোয়েরি পরিকল্পনা ও স্কোরের বিভাজন (<code>--verbose</code>)</span>
+    </div>
+
+    <div class="opt wide">
+      <label for="opt-user">ব্যবহারকারী আইডি</label>
+      <input type="text" id="opt-user" placeholder="খালি রাখলে ব্যক্তিগতকরণ বন্ধ" autocomplete="off">
+      <span class="hint">পঠন-অভ্যাস অনুযায়ী ফল সাজানো হয় (<code>--user</code>)</span>
+    </div>
+
+    <button type="button" class="reset" id="opt-reset">ডিফল্টে ফিরে যান</button>
+  </div>
+
+  <div class="notice" id="notice" role="status" aria-live="polite" hidden>
+    <span class="dot"></span><span id="notice-text"></span>
+  </div>
+
+  <div id="summary" class="summary" hidden></div>
+  <div id="planbox"></div>
+  <div id="results" aria-live="polite"></div>
+
+  <div class="empty" id="welcome">
+    <h2>কী খুঁজছেন?</h2>
+    <p>উপরের বাক্সে প্রশ্ন লিখে অনুসন্ধান বোতামে চাপ দিন।</p>
+  </div>
+
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const form = $("form"), input = $("q"), go = $("go"), goLabel = $("go-label");
+const notice = $("notice"), noticeText = $("notice-text");
+const results = $("results"), summary = $("summary"), welcome = $("welcome");
+
+const EXAMPLES = [
+  "মুক্তিযুদ্ধের ইতিহাস",
+  "হুমায়ূন আহমেদের উপন্যাস",
+  "ঢাকা শহরের ইতিহাস নিয়ে বই",
+  "পাকিস্তান আমলে কূটনীতিক ছিলেন এমন লেখকদের বই",
+];
+EXAMPLES.forEach(text => {
+  const b = document.createElement("button");
+  b.type = "button"; b.textContent = text;
+  b.onclick = () => { input.value = text; toggleClear(); runSearch(); };
+  $("examples").appendChild(b);
+});
+
+/* ---------------------------------------------------------------- options ---
+   Every control here mirrors a flag of `booksearch search`. Values are kept in
+   localStorage so a chosen setup survives a reload; server defaults fill the gaps. */
+const DEFAULTS = { top_k: 10, plan_mode: "never", rerank: true, verbose: false, user: "" };
+const STORE_KEY = "booksearch.options";
+let opts = { ...DEFAULTS };
+let llmAvailable = false;
+
+function loadOpts() {
+  try { opts = { ...DEFAULTS, ...JSON.parse(localStorage.getItem(STORE_KEY) || "{}") }; }
+  catch { opts = { ...DEFAULTS }; }
+}
+function saveOpts() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(opts)); } catch { /* private mode */ }
+}
+
+function setSeg(id, value) {
+  [...$(id).children].forEach(b =>
+    b.setAttribute("aria-pressed", String(b.dataset.value === String(value))));
+}
+function bindSeg(id, key, cast = (v) => v) {
+  [...$(id).children].forEach(b => b.onclick = () => {
+    if (b.disabled) return;
+    opts[key] = cast(b.dataset.value);
+    setSeg(id, b.dataset.value);
+    applyOpts();
+  });
+}
+bindSeg("seg-topk", "top_k", Number);
+bindSeg("seg-plan", "plan_mode");
+
+$("opt-rerank").onchange = (e) => { opts.rerank = e.target.checked; applyOpts(); };
+$("opt-verbose").onchange = (e) => { opts.verbose = e.target.checked; applyOpts(); };
+$("opt-user").oninput = (e) => { opts.user = e.target.value.trim(); saveOpts(); markDirty(); };
+$("opt-reset").onclick = () => { opts = { ...DEFAULTS }; syncControls(); applyOpts(); };
+
+$("opt-toggle").onclick = () => {
+  const open = $("panel").hidden;
+  $("panel").hidden = !open;
+  $("opt-toggle").setAttribute("aria-expanded", String(open));
+};
+
+/* Reflect `opts` back into the controls (after load, reset, or server defaults). */
+function syncControls() {
+  setSeg("seg-topk", opts.top_k);
+  setSeg("seg-plan", opts.plan_mode);
+  $("opt-rerank").checked = opts.rerank;
+  $("opt-verbose").checked = opts.verbose;
+  $("opt-user").value = opts.user;
+}
+function applyOpts() { saveOpts(); markDirty(); }
+
+/* A badge on the toggle, so a non-default setup is never invisible behind a closed panel. */
+function markDirty() {
+  const changed = Object.keys(DEFAULTS).filter(k => String(opts[k]) !== String(DEFAULTS[k]));
+  const badge = $("opt-count");
+  badge.hidden = changed.length === 0;
+  badge.textContent = bn(changed.length);
+}
+
+/* The LLM controls are only real when a chat model is actually behind the engine. */
+function reflectCapabilities(status) {
+  llmAvailable = !!status.llm_available;
+  [...$("seg-plan").children].forEach(b => { b.disabled = !llmAvailable && b.dataset.value !== "never"; });
+  $("hint-plan").innerHTML = llmAvailable
+    ? "নিয়ম যা পারে না, তা LLM দিয়ে বোঝানো (<code>--no-plan</code> / <code>--plan</code> / <code>--force-plan</code>)"
+    : "LM Studio চালু নেই — কেবল নিয়মভিত্তিক বিশ্লেষণ সম্ভব";
+  if (!llmAvailable && opts.plan_mode !== "never") { opts.plan_mode = "never"; syncControls(); applyOpts(); }
+
+  if (status.reranker_backend === "none") {
+    $("opt-rerank").disabled = true;
+    $("hint-rerank").textContent = "এই কনফিগারেশনে রির‍্যাঙ্কার বন্ধ (reranker_backend=none)";
+  }
+}
+
+loadOpts(); syncControls(); markDirty();
+
+/* ---------------------------------------------------------------- state */
+let engineReady = false, searching = false;
+
+function say(text, isError = false) {
+  noticeText.textContent = text;
+  notice.classList.toggle("err", isError);
+  notice.hidden = false;
+}
+function hush() { notice.hidden = true; }
+
+function setBusy(busy) {
+  searching = busy;
+  go.classList.toggle("busy", busy);
+  go.disabled = busy || !engineReady;
+  goLabel.textContent = busy ? "খোঁজা হচ্ছে" : "অনুসন্ধান";
+}
+function toggleClear() { $("clear").style.display = input.value ? "block" : "none"; }
+input.addEventListener("input", toggleClear);
+$("clear").onclick = () => { input.value = ""; toggleClear(); input.focus(); };
+
+/* ---------------------------------------------------------------- warm-up ---
+   The engine takes ~30 s to load. Rather than a dead button, poll and narrate. */
+async function pollStatus() {
+  try {
+    const s = await (await fetch("/api/status")).json();
+    if (s.failed) { engineReady = false; go.disabled = true;
+      say("ইঞ্জিন চালু করা যায়নি: " + s.error, true); return; }
+    if (s.ready) {
+      engineReady = true; go.disabled = searching;
+      // Server defaults win only where the user has never chosen anything.
+      if (!localStorage.getItem(STORE_KEY) && s.defaults) {
+        Object.assign(DEFAULTS, s.defaults);
+        opts = { ...opts, ...s.defaults };
+        syncControls(); markDirty();
+      }
+      reflectCapabilities(s);
+      say(`প্রস্তুত — ${bn(s.books)}টি বই সূচিভুক্ত`);
+      setTimeout(hush, 2500);
+      return;
+    }
+    go.disabled = true;
+    say(`${s.stage}… (${bn(Math.round(s.elapsed_s))} সেকেন্ড) — প্রথমবার প্রায় ৩০ সেকেন্ড লাগে`);
+    setTimeout(pollStatus, 1000);
+  } catch {
+    say("সার্ভারের সাথে সংযোগ নেই।", true);
+    setTimeout(pollStatus, 2000);
+  }
+}
+pollStatus();
+
+/* ---------------------------------------------------------------- search */
+form.onsubmit = (e) => { e.preventDefault(); runSearch(); };
+
+async function runSearch() {
+  const query = input.value.trim();
+  if (!query || searching) return;
+  if (!engineReady) { say("ইঞ্জিন এখনও প্রস্তুত হচ্ছে, একটু অপেক্ষা করুন…"); return; }
+
+  setBusy(true); hush();
+  welcome.hidden = true; summary.hidden = true; $("planbox").innerHTML = "";
+  showSkeleton();
+  const t0 = performance.now();
+
+  try {
+    const res = await fetch("/api/search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query,
+        top_k: opts.top_k,
+        plan_mode: opts.plan_mode,
+        rerank: opts.rerank,
+        user: opts.user,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) { results.innerHTML = ""; say(data.error || "অনুসন্ধান ব্যর্থ হয়েছে।", true); return; }
+    render(data, Math.round(performance.now() - t0));
+  } catch (err) {
+    results.innerHTML = "";
+    say("অনুরোধ পাঠানো যায়নি: " + err.message, true);
+  } finally {
+    setBusy(false);
+  }
+}
+
+function showSkeleton() {
+  results.innerHTML = "";
+  for (let i = 0; i < 3; i++) {
+    const s = document.createElement("div");
+    s.className = "skel";
+    s.innerHTML = `<div class="bar" style="width:55%;height:16px"></div>
+                   <div class="bar" style="width:32%"></div>
+                   <div class="bar" style="width:92%"></div>
+                   <div class="bar" style="width:78%;margin-bottom:0"></div>`;
+    results.appendChild(s);
+  }
+  say("ফলাফল প্রস্তুত করা হচ্ছে…");
+}
+
+/* ---------------------------------------------------------------- render */
+function render(data, clientMs) {
+  hush();
+  results.innerHTML = "";
+
+  // An option the server could not honour (no LM Studio, no reranker) is reported, not hidden.
+  const notes = (data.applied && data.applied.notes) || [];
+  if (notes.length) say(notes.join(" "), true);
+
+  if (opts.verbose) renderPlan(data, clientMs);
+
+  if (!data.hits.length) {
+    summary.hidden = true;
+    results.innerHTML = `<div class="empty"><h2>কোনো ফলাফল পাওয়া যায়নি</h2>
+      <p>অন্য শব্দে চেষ্টা করুন, অথবা প্রশ্নটি আরও সংক্ষিপ্ত করুন।</p></div>`;
+    return;
+  }
+
+  const applied = data.applied || {};
+  const bits = [
+    `<b>${bn(data.hits.length)}</b>টি ফলাফল`,
+    `${bn(data.candidate_count)}টি প্রার্থী থেকে বাছাই`,
+    `${bn(clientMs)} মিলিসেকেন্ড`,
+  ];
+  if (data.plan.entities.length)
+    bits.push("শনাক্ত: " + data.plan.entities.map(e => esc(e.name)).join(", "));
+  if (applied.rerank === false) bits.push("পুনঃক্রম ছাড়া");
+  if (applied.plan_mode && applied.plan_mode !== "never") bits.push("LLM পরিকল্পনা");
+  if (applied.user) bits.push("ব্যক্তিগতকৃত: " + esc(applied.user));
+  summary.innerHTML = bits.map(b => `<span>${b}</span>`).join("");
+  summary.hidden = false;
+
+  data.hits.forEach((hit, i) => {
+    const card = document.createElement("article");
+    card.className = "card";
+    card.style.animationDelay = (i * 35) + "ms";
+    card.appendChild(cardBody(hit));
+    results.appendChild(card);
+  });
+}
+
+function cardBody(hit) {
+  const frag = document.createDocumentFragment();
+
+  const top = el("div", "card-top");
+  top.appendChild(el("div", "rank", bn(hit.rank)));
+  const head = el("div"); head.style.minWidth = "0";
+  head.appendChild(el("h2", "title", hit.title || "শিরোনামহীন"));
+
+  const byline = el("p", "byline");
+  byline.innerHTML = `<b>${esc(hit.author || "অজ্ঞাত লেখক")}</b>` +
+    (hit.author_roles.length ? ` · ${esc(hit.author_roles.join(", "))}` : "");
+  head.appendChild(byline);
+
+  const meta = [];
+  if (hit.publisher) meta.push(esc(hit.publisher));
+  if (hit.publish_year) meta.push(bn(hit.publish_year));
+  if (hit.places.length) meta.push(esc(hit.places.join(", ")));
+  const metaRow = el("div", "meta");
+  metaRow.innerHTML = meta.map(m => `<span>${m}</span>`).join("") +
+    (hit.available ? "" : `<span class="out">স্টকে নেই</span>`);
+  head.appendChild(metaRow);
+  top.appendChild(head);
+  frag.appendChild(top);
+
+  const text = hit.summary || hit.description;
+  if (text) {
+    const p = el("p", "snippet clamp", text.trim());
+    p.title = "সম্পূর্ণ দেখতে ক্লিক করুন";
+    p.onclick = () => p.classList.toggle("clamp");
+    frag.appendChild(p);
+  }
+
+  const tags = [...hit.genres.map(g => ["genre", g]), ...hit.subjects.map(s => ["", s])];
+  if (tags.length) {
+    const box = el("div", "tags");
+    box.innerHTML = tags.map(([k, t]) => `<span class="tag ${k}">${esc(t)}</span>`).join("");
+    frag.appendChild(box);
+  }
+
+  const why = document.createElement("details");
+  why.className = "why";
+  why.innerHTML = `<summary>কেন এই বইটি এলো?</summary>
+    <p>${esc(hit.explanation)}</p>
+    <div class="chan">${hit.channels.map(c => `<span>${esc(CHANNEL[c] || c)}</span>`).join("")}</div>`;
+  frag.appendChild(why);
+
+  if (opts.verbose) {
+    const parts = Object.entries(hit.components || {}).map(
+      ([k, v]) => `<span>${esc(k)} ${v.toFixed(3)}</span>`);
+    parts.push(`<span>relevance ${hit.relevance.toFixed(3)}</span>`);
+    const box = el("div", "breakdown");
+    box.innerHTML = parts.join("");
+    frag.appendChild(box);
+  }
+
+  const rel = el("div", "relevance");
+  const pct = Math.round(Math.max(0, Math.min(1, hit.score)) * 100);
+  rel.innerHTML = `<span>মিলের মাত্রা</span>
+    <span class="track"><span class="fill" style="width:${pct}%"></span></span>
+    <span>${bn(pct)}%</span>`;
+  frag.appendChild(rel);
+
+  return frag;
+}
+
+/* The --verbose panel: what the query was understood to mean, and where time went. */
+function renderPlan(data, clientMs) {
+  const p = data.plan, applied = data.applied || {};
+  const rows = [];
+  const add = (label, value) => { if (value) rows.push([label, value]); };
+
+  add("উদ্দেশ্য", `<code>${esc(p.intent)}</code>`);
+  add("শনাক্ত সত্তা", p.entities.map(e =>
+    `${esc(e.name)} <code>${esc(e.kind)}${e.hard ? ", hard" : ""}</code>`).join(", "));
+  add("মূল শব্দ", p.keywords.map(k => `<code>${esc(k)}</code>`).join(" "));
+  add("সম্প্রসারিত", p.expanded_terms.map(k => `<code>${esc(k)}</code>`).join(" "));
+  const filters = Object.entries(p.filters || {});
+  add("হার্ড ফিল্টার", filters.map(([k, v]) =>
+    `${esc(k)}=<code>${esc(Array.isArray(v) ? v.join(", ") : v)}</code>`).join(" · "));
+  add("বিকল্প", [
+    `top_k=<code>${bn(applied.top_k ?? opts.top_k)}</code>`,
+    `plan=<code>${esc(applied.plan_mode ?? opts.plan_mode)}</code>`,
+    `rerank=<code>${applied.rerank === false ? "off" : "on"}</code>`,
+  ].join(" · "));
+  add("সময় (ms)", Object.entries(data.timings_ms || {}).map(
+    ([k, v]) => `${esc(k)} <code>${bn(v)}</code>`).join(" · ") +
+    ` · সর্বমোট <code>${bn(clientMs)}</code>`);
+
+  $("planbox").innerHTML =
+    `<div class="planbox"><h3>কোয়েরি পরিকল্পনা</h3><dl>` +
+    rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("") + `</dl></div>`;
+}
+
+const CHANNEL = { lexical: "শব্দ মিল", dense: "অর্থগত মিল", graph: "জ্ঞান-গ্রাফ", facet: "সরাসরি শর্ত" };
+
+/* ---------------------------------------------------------------- helpers */
+function el(tag, cls, text) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text !== undefined) n.textContent = text;
+  return n;
+}
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+/* Bengali digits -- the rest of the page is Bengali; Latin numerals look pasted in. */
+function bn(n) { return String(n).replace(/\d/g, d => "০১২৩৪৫৬৭৮৯"[d]); }
+
+input.focus();
+</script>
+</body>
+</html>

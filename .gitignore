@@ -1,0 +1,17 @@
+*.txt
+*.md
+artifacts/
+outputs/
+eval/
+data/
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+.env
+.env.bak
+.env.example
+*.log
+*.py.bak
+*.zip
