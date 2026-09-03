@@ -90,7 +90,8 @@ class EngineHandle:
 
     def search(self, query: str, *, user_id: str | None = None, session: Session | None = None,
                top_k: int | None = None, plan_mode: str | None = None,
-               rerank: bool | None = None) -> tuple[SearchResponse, dict]:
+               rerank: bool | None = None,
+               trace_rerank: bool = False) -> tuple[SearchResponse, dict]:
         """Run one search under the UI's chosen options. Returns the response and what
         was *actually* applied -- the two differ when an option could not be honoured."""
         if self.engine is None:
@@ -98,7 +99,7 @@ class EngineHandle:
         with self._search_lock:
             with self._overrides(plan_mode, rerank) as applied:
                 response = self.engine.search(query, user_id=user_id, session=session,
-                                              top_k=top_k)
+                                              top_k=top_k, trace_rerank=trace_rerank)
         applied["top_k"] = top_k or self.settings.final_top_k
         applied["user"] = user_id or ""
         return response, applied
@@ -181,6 +182,8 @@ def create_app(settings: Settings = default_settings, *, use_llm: bool = True) -
                 top_k=_top_k(payload.get("top_k")),
                 plan_mode=payload.get("plan_mode"),
                 rerank=_flag(payload.get("rerank")),
+                # Off unless asked for: the trace carries every candidate passage in full.
+                trace_rerank=bool(payload.get("trace_rerank")),
             )
         except Exception as exc:  # noqa: BLE001
             log.exception("search failed: %s", query)
@@ -227,6 +230,8 @@ def _response_payload(response: SearchResponse, total_ms: int, applied: dict) ->
             "filters": plan.filters.model_dump(exclude_defaults=True),
         },
         "hits": [_hit_payload(hit, rank) for rank, hit in enumerate(response.hits, start=1)],
+        # Present only when the request asked for it; `null` otherwise.
+        "rerank": response.rerank.model_dump() if response.rerank else None,
     }
 
 

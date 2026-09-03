@@ -46,6 +46,11 @@ class _Scores(BaseModel):
 
 
 class Reranker(Protocol):
+    # Which backend this is, and which weights it loaded. Reported in `RerankTrace` so a
+    # silent degradation to `noop` is visible instead of being read as a real reranking.
+    name: str
+    model_name: str
+
     def score(self, query: str, records: list[IndexedBook]) -> list[float]:
         """Relevance in 0..1, aligned with `records`."""
 
@@ -53,15 +58,21 @@ class Reranker(Protocol):
 class NoOpReranker:
     """Used when no LLM is available -- fusion order is kept."""
 
+    name = "noop"
+    model_name = ""
+
     def score(self, query: str, records: list[IndexedBook]) -> list[float]:
         n = len(records)
         return [1.0 - i / max(n, 1) for i in range(n)]
 
 
 class LLMReranker:
+    name = "llm"
+
     def __init__(self, llm: LMStudio, batch_size: int = 8):  # 8 books ~ 100 output tokens
         self.llm = llm
         self.batch_size = batch_size
+        self.model_name = ""  # resolved server-side; asking here would cost a round trip
 
     def score(self, query: str, records: list[IndexedBook]) -> list[float]:
         scores = [0.5] * len(records)
@@ -96,6 +107,8 @@ class CrossEncoderReranker:
     than taking the search down with it (~2 s for 16 candidates on CPU, which is still
     twenty-five times faster than the grader it replaces).
     """
+
+    name = "crossencoder"
 
     def __init__(self, model_name: str, *, device: str = "", batch_size: int = 16,
                  max_length: int = 512):
@@ -143,7 +156,9 @@ class CrossEncoderReranker:
             log.warning("cross-encoder scoring failed (%s); keeping fusion order", exc)
             return NoOpReranker().score(query, records)
         # bge-reranker already emits 0..1 via its sigmoid head; clamp for safety only.
-        return [max(0.0, min(1.0, float(v))) for v in raw]
+        scores = [max(0.0, min(1.0, float(v))) for v in raw]
+        _log_pairs(log, self.model_name, query, pairs, scores)
+        return scores
 
 
 def _release_cuda() -> None:
@@ -166,6 +181,22 @@ def _device_preference() -> list[str]:
     except Exception:  # noqa: BLE001
         pass
     return ["cpu"]
+
+
+def _log_pairs(logger: logging.Logger, model: str, query: str,
+               pairs: list[tuple[str, str]], scores: list[float]) -> None:
+    """Dump reranker input and output at DEBUG.
+
+    Guarded on `isEnabledFor` because building this string is not free -- sixteen
+    four-hundred-character passages per search, on a path that runs per query.
+    """
+    if not logger.isEnabledFor(logging.DEBUG):
+        return
+    logger.debug("rerank %s | query: %s | %d pairs", model or "?", query, len(pairs))
+    order = sorted(range(len(scores)), key=lambda i: -scores[i])
+    for rank, i in enumerate(order, start=1):
+        first_line = pairs[i][1].splitlines()[0] if pairs[i][1] else ""
+        logger.debug("  #%-2d in=%-2d score=%.4f  %s", rank, i + 1, scores[i], first_line)
 
 
 def _passage(record: IndexedBook) -> str:

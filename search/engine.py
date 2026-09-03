@@ -25,13 +25,17 @@ from search.ranking.profile_index import ProfileStore, Session, UserProfile
 from search.indexing.dense_index import VectorIndex
 from ingest.run import load_indexed
 from search.llm import LMStudio
-from search.core.schemas import IndexedBook, SearchHit, SearchResponse
+from search.core.schemas import (
+    IndexedBook, RerankEntry, RerankTrace, SearchHit, SearchResponse,
+)
 from search.query.taxonomy import get_taxonomy
 from search.retrieval import fusion
 from search.ranking import personalize
 from search.retrieval import rag_fusion
 from search.ranking.explanation_generator import explain
-from search.ranking.rerank import NoOpReranker, Reranker, final_scores
+# `_passage` is the reranker's input builder; the trace records exactly what was fed in
+# rather than a lookalike, so the two cannot drift apart.
+from search.ranking.rerank import NoOpReranker, Reranker, _passage, final_scores
 # rerank2 adds the `lmstudio` backend and delegates every other one to rerank.py.
 from search.ranking.rerank2 import make_reranker
 from search.retrieval.retrieve import Retriever
@@ -99,12 +103,17 @@ class SearchEngine:
     # ------------------------------------------------------------------ search
     def search(self, query: str, *, user_id: str | None = None,
                session: Session | None = None, top_k: int | None = None,
-               use_rag_fusion: bool | None = None) -> SearchResponse:
+               use_rag_fusion: bool | None = None,
+               trace_rerank: bool = False) -> SearchResponse:
         """One search. `use_rag_fusion` overrides the `rag_fusion` setting for this call.
 
         Under RAG-Fusion the query is retrieved several times over -- once per
         reformulation -- and the rankings are fused, so `top_k` is both how many fused
         candidates are carried forward and how many results come back.
+
+        `trace_rerank` fills `SearchResponse.rerank` with what the reranker was shown and
+        what it returned. Off by default: it carries every candidate passage in full, which
+        is a few hundred kilobytes of Bengali text on a normal search.
         """
         fusing = self.settings.rag_fusion if use_rag_fusion is None else use_rag_fusion
         top_k = top_k or (self.settings.rag_fusion_top_n if fusing
@@ -144,6 +153,9 @@ class SearchEngine:
             semantic = self.reranker.score(plan.normalized_query, records) if records else []
             ranked = final_scores(shortlist, self.records, semantic, self.settings)
 
+        trace = (self._rerank_trace(plan.normalized_query, records, semantic, ranked)
+                 if trace_rerank else None)
+
         with _timed(timings, "personalize"):
             affinity = personalize.build_affinity(profile, session, self.records, self.settings)
             ranked = personalize.apply(ranked, self.records, affinity, self.settings)
@@ -161,6 +173,39 @@ class SearchEngine:
             candidates=[c.book_id for c in fused],
             channel_hits=channel_hits,
             query_variants=variants,
+            rerank=trace,
+        )
+
+    def _rerank_trace(self, normalized_query: str, records: list[IndexedBook],
+                      semantic: list[float], ranked: list[tuple]) -> RerankTrace:
+        """What the reranker read, what it returned, and where each candidate ended up.
+
+        `records` is the shortlist in fusion order and `semantic` is the reranker's output
+        for it, so `strict=True` turns any future drift between the two into an error here
+        rather than into a silently mismatched trace.
+
+        Called before personalisation, so `final_rank` is the ranking the *relevance*
+        signals produced -- which is the one worth attributing to the reranker.
+        """
+        final_rank = {item[0].book_id: rank for rank, item in enumerate(ranked, start=1)}
+        entries = [
+            RerankEntry(
+                book_id=record.book.book_id,
+                title=record.book.title,
+                fusion_rank=position,
+                passage=_passage(record),
+                score=round(float(value), 4),
+                final_rank=final_rank.get(record.book.book_id),
+            )
+            for position, (record, value) in enumerate(
+                zip(records, semantic, strict=True), start=1
+            )
+        ]
+        return RerankTrace(
+            backend=getattr(self.reranker, "name", type(self.reranker).__name__),
+            model=getattr(self.reranker, "model_name", ""),
+            query=normalized_query,
+            entries=entries,
         )
 
     # ------------------------------------------------------------------ helpers

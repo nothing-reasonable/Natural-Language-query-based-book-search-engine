@@ -220,6 +220,40 @@ class SearchHit(BaseModel):
     explanation: str = ""
 
 
+class RerankEntry(BaseModel):
+    """One (query, passage) pair exactly as the reranker saw it, and what it gave back.
+
+    `passage` is the reranker's *input*, not a display string: it is what `rerank._passage`
+    builds, which is what the cross-encoder and the LM Studio backend both actually read.
+    The one exception is the deprecated `reranker_backend="llm"` grader, which composes its
+    own listing via `rerank._describe` -- close, but not identical.
+    """
+
+    book_id: str
+    title: str
+    fusion_rank: int  # position going in (1-based, fusion order)
+    passage: str  # the text handed to the model
+    score: float  # what came back, 0..1
+    # Position after the signal blend but *before* personalisation, so the movement from
+    # `fusion_rank` is attributable to relevance alone. None if the blend dropped it.
+    final_rank: int | None = None
+
+
+class RerankTrace(BaseModel):
+    """Reranker I/O for one search. Populated only when tracing is explicitly asked for.
+
+    `backend` is the reranker that *ran*, not the one configured. Every backend degrades to
+    `noop` rather than raising (a missing download, a CUDA OOM, a dead server), and a noop
+    still returns plausible-looking descending scores -- so the label is the only reliable
+    way to tell a real reranking from fusion order wearing its clothes.
+    """
+
+    backend: str = ""
+    model: str = ""
+    query: str = ""  # the normalised query, which is not always what the user typed
+    entries: list[RerankEntry] = Field(default_factory=list)
+
+
 class SearchResponse(BaseModel):
     query: str
     plan: QueryPlan
@@ -236,3 +270,6 @@ class SearchResponse(BaseModel):
     # Worth surfacing: when multi-query retrieval helps or hurts, the reason is almost
     # always visible in the variants the rewriter chose.
     query_variants: list[str] = Field(default_factory=list)
+    # Reranker input and output, when the caller asked for it. None means "not traced",
+    # which is different from "traced and the reranker saw nothing".
+    rerank: RerankTrace | None = None

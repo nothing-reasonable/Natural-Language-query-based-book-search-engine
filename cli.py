@@ -128,6 +128,10 @@ def search(
     force_plan: bool = typer.Option(False, "--force-plan", help="use the LLM on every query, regardless of the rules"),
     no_plan: bool = typer.Option(False, "--no-plan", help="rules only, never call the LLM"),
     verbose: bool = typer.Option(False, "--verbose", help="show the query plan and score breakdown"),
+    show_rerank: bool = typer.Option(False, "--show-rerank",
+                                     help="show what the reranker was shown and what it scored"),
+    show_passages: bool = typer.Option(False, "--show-passages",
+                                       help="with --show-rerank, print each passage in full"),
 ):
     """Run a search."""
     if sum([plan, force_plan, no_plan]) > 1:
@@ -149,11 +153,15 @@ def search(
         "rag_fusion": rag_fusion or settings.rag_fusion,
         "rag_fusion_top_n": top,
     })
+    if show_passages and not show_rerank:
+        raise typer.BadParameter("--show-passages only means something with --show-rerank")
+
     engine = SearchEngine.load(tuned, use_llm=not no_llm)
     # --top is the RAG-Fusion N; --top-k still names the plain-search result count, so
     # whichever path is running gets the number that belongs to it.
     wanted = top_k or (top if tuned.rag_fusion else None)
-    response = engine.search(query, user_id=user or None, top_k=wanted)
+    response = engine.search(query, user_id=user or None, top_k=wanted,
+                             trace_rerank=show_rerank)
 
     if verbose:
         # Not `plan` -- that name is the --plan flag in this scope.
@@ -181,6 +189,9 @@ def search(
             title="query plan",
         ))
 
+    if show_rerank:
+        _print_rerank(response.rerank, show_passages)
+
     if not response.hits:
         console.print("[yellow]কোনো ফলাফল পাওয়া যায়নি।[/]")
         return
@@ -192,6 +203,49 @@ def search(
             body.append(f"[dim]score {hit.score} | {hit.components} | channels: {', '.join(hit.channels)}[/]")
         console.print(Panel("\n".join(body), title=header, title_align="left"))
 
+
+
+def _print_rerank(trace, show_passages: bool) -> None:
+    """Print reranker input and output, in the order the reranker put them."""
+    if trace is None or not trace.entries:
+        console.print("[yellow]reranker produced no trace[/] — nothing reached stage 2")
+        return
+
+    # `noop` is what every backend degrades to on a failed load or a dead server, and its
+    # evenly-spaced scores read exactly like a real reranking. Say so plainly.
+    if trace.backend == "noop":
+        console.print(Panel(
+            "The reranker is [bold]not[/] running: scores below are fusion order "
+            "restated as a linear ramp. Check for a 'cross-encoder unavailable' "
+            "warning to see why.",
+            title="[yellow]no reranking[/]", title_align="left",
+        ))
+
+    console.print(Panel(
+        f"""backend: [bold]{trace.backend}[/]
+model: {trace.model or ('(whatever LM Studio has loaded)' if trace.backend == 'lmstudio' else '—')}
+query as fed to the reranker: {trace.query}
+candidates scored: {len(trace.entries)}""",
+        title="reranker", title_align="left",
+    ))
+
+    table = Table("in", "score", "final", "moved", "title")
+    for entry in sorted(trace.entries, key=lambda e: -e.score):
+        if entry.final_rank is None:
+            movement = "[dim]dropped[/]"
+        else:
+            delta = entry.fusion_rank - entry.final_rank
+            movement = (f"[green]+{delta}[/]" if delta > 0
+                        else f"[red]{delta}[/]" if delta < 0 else "[dim]0[/]")
+        table.add_row(str(entry.fusion_rank), f"{entry.score:.4f}",
+                      str(entry.final_rank or "-"), movement, entry.title[:60])
+    console.print(table)
+
+    if show_passages:
+        for entry in sorted(trace.entries, key=lambda e: -e.score):
+            console.print(Panel(entry.passage,
+                                title=f"in #{entry.fusion_rank} — score {entry.score:.4f}",
+                                title_align="left"))
 
 
 @app.command()

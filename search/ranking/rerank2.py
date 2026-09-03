@@ -67,7 +67,9 @@ from search.core.schemas import IndexedBook
 # Re-exported so `rerank2` is a drop-in for `rerank` at the import site. `_passage` is
 # what the cross-encoder reads; feeding the chat model the same text keeps the two
 # backends comparable on the evaluation set.
-from search.ranking.rerank import NoOpReranker, Reranker, _passage, final_scores  # noqa: F401
+from search.ranking.rerank import (  # noqa: F401
+    NoOpReranker, Reranker, _log_pairs, _passage, final_scores,
+)
 from search.ranking.rerank import make_reranker as _make_reranker_v1
 
 log = logging.getLogger(__name__)
@@ -108,6 +110,8 @@ class LMStudioReranker:
     mutable state (which mode works, the score cache) is guarded.
     """
 
+    name = "lmstudio"
+
     def __init__(self, llm: LMStudio, settings: Settings = default_settings):
         self.llm = llm
         self.settings = settings
@@ -122,6 +126,10 @@ class LMStudioReranker:
         self._failures = 0  # consecutive; see _judge
         self._cache: dict[tuple[str, str], float] = {}
         self._lock = threading.Lock()
+
+    @property
+    def model_name(self) -> str:
+        return self.model or ""
 
     # ------------------------------------------------------------------ public API
     def score(self, query: str, records: list[IndexedBook]) -> list[float]:
@@ -143,7 +151,10 @@ class LMStudioReranker:
         if all(value is None for value in judged):
             log.warning("LM Studio reranker produced no usable scores -- keeping fusion order")
             return fallback
-        return [fallback[i] if value is None else value for i, value in enumerate(judged)]
+        scores = [fallback[i] if value is None else value for i, value in enumerate(judged)]
+        _log_pairs(log, self.model, query,
+                   [(query, _passage(r)) for r in records], scores)
+        return scores
 
     def score_passages(self, query: str, passages: list[str]) -> list[float | None]:
         """Score already-rendered passages. Useful for testing without an index."""
