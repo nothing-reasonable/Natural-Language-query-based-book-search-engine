@@ -273,3 +273,5 @@ class SearchResponse(BaseModel):
     # Reranker input and output, when the caller asked for it. None means "not traced",
     # which is different from "traced and the reranker saw nothing".
     rerank: RerankTrace | None = None
+    # Where the full stage-by-stage trace was written, "" when tracing is off.
+    trace_path: str = ""

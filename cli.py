@@ -132,6 +132,8 @@ def search(
                                      help="show what the reranker was shown and what it scored"),
     show_passages: bool = typer.Option(False, "--show-passages",
                                        help="with --show-rerank, print each passage in full"),
+    no_trace: bool = typer.Option(False, "--no-trace",
+                                  help="do not write the stage-by-stage trace file"),
 ):
     """Run a search."""
     if sum([plan, force_plan, no_plan]) > 1:
@@ -161,7 +163,8 @@ def search(
     # whichever path is running gets the number that belongs to it.
     wanted = top_k or (top if tuned.rag_fusion else None)
     response = engine.search(query, user_id=user or None, top_k=wanted,
-                             trace_rerank=show_rerank)
+                             trace_rerank=show_rerank,
+                             trace=False if no_trace else None)
 
     if verbose:
         # Not `plan` -- that name is the --plan flag in this scope.
@@ -188,6 +191,9 @@ def search(
             f"timings(ms): {response.timings_ms}",
             title="query plan",
         ))
+
+    if response.trace_path:
+        console.print(f"[dim]trace:[/] {response.trace_path}")
 
     if show_rerank:
         _print_rerank(response.rerank, show_passages)

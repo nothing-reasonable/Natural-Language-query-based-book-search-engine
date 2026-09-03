@@ -63,6 +63,16 @@ class Settings(BaseSettings):
     data_dir: Path = ROOT / "data"
     artifacts_dir: Path = ROOT / "artifacts"
 
+    # ---------------------------------------------------------------- Query tracing
+    # One plain-text file per search, recording what every pipeline stage handed to the
+    # next (see search/trace.py). On by default because the failure mode this exists to
+    # catch -- a stage silently doing nothing -- is invisible from the results alone.
+    # Costs a file of roughly 10-40 kB per query; set BOOKSEARCH_TRACE_QUERIES=false to
+    # turn it off, and delete artifacts/query_traces/ freely.
+    trace_queries: bool = True
+    # Characters of each reranker passage written to the trace. 0 means no limit.
+    trace_passage_chars: int = 600
+
     # ---------------------------------------------------------------- Ingestion
     # Fuzzy author merging is deliberately conservative: Bengali names differ by a single
     # vowel sign more often than not ("সালেহ" vs "সালেহা"). Exact-key merges and the
@@ -200,6 +210,10 @@ class Settings(BaseSettings):
     @property
     def graph_path(self) -> Path:
         return self.artifacts_dir / "graph.json"
+
+    @property
+    def trace_dir(self) -> Path:
+        return self.artifacts_dir / "query_traces"
 
     @property
     def profiles_dir(self) -> Path:

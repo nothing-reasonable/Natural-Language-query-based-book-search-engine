@@ -232,6 +232,7 @@ def _response_payload(response: SearchResponse, total_ms: int, applied: dict) ->
         "hits": [_hit_payload(hit, rank) for rank, hit in enumerate(response.hits, start=1)],
         # Present only when the request asked for it; `null` otherwise.
         "rerank": response.rerank.model_dump() if response.rerank else None,
+        "trace_path": response.trace_path,
     }
 
 

@@ -39,6 +39,7 @@ from search.ranking.rerank import NoOpReranker, Reranker, _passage, final_scores
 # rerank2 adds the `lmstudio` backend and delegates every other one to rerank.py.
 from search.ranking.rerank2 import make_reranker
 from search.retrieval.retrieve import Retriever
+from search.trace import make_tracer, record_search
 from search.query.query_understanding import QueryUnderstanding
 
 log = logging.getLogger(__name__)
@@ -104,7 +105,8 @@ class SearchEngine:
     def search(self, query: str, *, user_id: str | None = None,
                session: Session | None = None, top_k: int | None = None,
                use_rag_fusion: bool | None = None,
-               trace_rerank: bool = False) -> SearchResponse:
+               trace_rerank: bool = False,
+               trace: bool | None = None) -> SearchResponse:
         """One search. `use_rag_fusion` overrides the `rag_fusion` setting for this call.
 
         Under RAG-Fusion the query is retrieved several times over -- once per
@@ -114,7 +116,14 @@ class SearchEngine:
         `trace_rerank` fills `SearchResponse.rerank` with what the reranker was shown and
         what it returned. Off by default: it carries every candidate passage in full, which
         is a few hundred kilobytes of Bengali text on a normal search.
+
+        `trace` writes the full stage-by-stage account to a text file, overriding the
+        `trace_queries` setting for this call. The path comes back on the response.
         """
+        tracer = make_tracer(query, self.settings, enabled=trace)
+        # The written trace includes the reranker's inputs, so asking for one implies the
+        # rerank trace -- otherwise its most useful section would be empty.
+        trace_rerank = trace_rerank or tracer.enabled
         fusing = self.settings.rag_fusion if use_rag_fusion is None else use_rag_fusion
         top_k = top_k or (self.settings.rag_fusion_top_n if fusing
                           else self.settings.final_top_k)
@@ -135,6 +144,7 @@ class SearchEngine:
                     top_n=max(self.settings.rerank_top_k, top_k),
                 )
             with _timed(timings, "fuse"):
+                pre_filter = fused
                 fused = fusion.apply_filters(fused, plan.filters, self.records)
                 shortlist = fused[: max(self.settings.rerank_top_k, top_k)]
         else:
@@ -144,6 +154,7 @@ class SearchEngine:
 
             with _timed(timings, "fuse"):
                 fused = fusion.fuse(channels, self.settings)
+                pre_filter = fused
                 fused = fusion.apply_filters(fused, plan.filters, self.records)
                 shortlist = fused[: max(self.settings.rerank_top_k, top_k)]
 
@@ -153,8 +164,11 @@ class SearchEngine:
             semantic = self.reranker.score(plan.normalized_query, records) if records else []
             ranked = final_scores(shortlist, self.records, semantic, self.settings)
 
-        trace = (self._rerank_trace(plan.normalized_query, records, semantic, ranked)
-                 if trace_rerank else None)
+        # `ranked` is reassigned by personalisation below; both traces want the ordering
+        # the relevance signals produced, so hold on to it here.
+        blended = ranked
+        rerank_trace = (self._rerank_trace(plan.normalized_query, records, semantic, ranked)
+                        if trace_rerank else None)
 
         with _timed(timings, "personalize"):
             affinity = personalize.build_affinity(profile, session, self.records, self.settings)
@@ -168,12 +182,22 @@ class SearchEngine:
         if profile is not None:
             self.profiles.record(profile.user_id, "query", query)
 
+        record_search(
+            tracer, plan=plan, fusing=fusing, variants=variants,
+            channel_hits=channel_hits, pre_filter=pre_filter, fused=fused,
+            shortlist=shortlist, semantic=semantic, ranked=blended, hits=hits,
+            timings=timings, records=self.records, rerank_trace=rerank_trace,
+            personalized=profile is not None, settings=self.settings,
+        )
+        written = tracer.write()
+
         return SearchResponse(
             query=query, plan=plan, hits=hits, timings_ms=timings,
             candidates=[c.book_id for c in fused],
             channel_hits=channel_hits,
             query_variants=variants,
-            rerank=trace,
+            rerank=rerank_trace,
+            trace_path=str(written) if written else "",
         )
 
     def _rerank_trace(self, normalized_query: str, records: list[IndexedBook],
