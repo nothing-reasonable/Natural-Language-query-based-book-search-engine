@@ -3,7 +3,7 @@
 artifacts/
 outputs/
 eval/
-data/
+# data/
 __pycache__/
 *.pyc
 .pytest_cache/

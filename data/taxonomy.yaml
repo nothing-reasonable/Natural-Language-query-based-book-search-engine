@@ -1,0 +1,299 @@
+# নিয়ন্ত্রিত শব্দভাণ্ডার (controlled vocabulary).
+#
+# The canonical form is the YAML key; `aliases` are every spelling/synonym that should
+# collapse onto it. This file is meant to be curated by hand -- the design doc calls for
+# high-value categories (১৯৭১, ভাষা আন্দোলন, দেশভাগ, পাকিস্তান আমল, কূটনীতি, স্মৃতিকথা,
+# রাজনৈতিক ইতিহাস) to be reviewed manually so their precision stays high.
+#
+# Matching is done on the *analysed* form (see bengali.analyze), so inflected variants
+# such as "মুক্তিযুদ্ধের" already resolve without being listed.
+#
+# It does double duty: every entry is both a tag applied to books during enrichment and a
+# query-expansion rule at search time. Adding a concept here improves recall on the next
+# `build-index` with no re-enrichment run, because `derive.py` re-tags from this file on
+# every load.
+#
+# Concepts below the first block were added after mining the catalogue for frequent terms
+# the vocabulary did not cover (see the note in README).
+
+subjects:
+  মুক্তিযুদ্ধ:
+    period: পাকিস্তান আমল
+    related: [গণহত্যা, শরণার্থী, বিজয়]
+    aliases:
+      - বাংলাদেশের স্বাধীনতা যুদ্ধ
+      - স্বাধীনতা যুদ্ধ
+      - স্বাধীনতা সংগ্রাম
+      - মুক্তিসংগ্রাম
+      - একাত্তর
+      - ১৯৭১
+      - ৭১
+      - মুক্তিযোদ্ধা
+      - muktijuddho
+      - liberation war
+      - freedom fight
+
+  ভাষা আন্দোলন:
+    period: পাকিস্তান আমল
+    aliases: [একুশে ফেব্রুয়ারি, ভাষা সংগ্রাম, রাষ্ট্রভাষা আন্দোলন, ১৯৫২, বায়ান্ন, language movement, ভাষা শহীদ, ভাষাসৈনিক]
+
+  দেশভাগ:
+    period: ব্রিটিশ আমল
+    aliases: [ভারত ভাগ, পার্টিশন, ১৯৪৭, সাতচল্লিশ, partition, দ্বিজাতিতত্ত্ব]
+
+  বঙ্গভঙ্গ:
+    period: ব্রিটিশ আমল
+    aliases: [১৯০৫, বঙ্গ বিভাগ, স্বদেশী আন্দোলন]
+
+  গণহত্যা:
+    period: পাকিস্তান আমল
+    aliases: [হত্যাযজ্ঞ, বধ্যভূমি, নির্যাতন, genocide, অপারেশন সার্চলাইট, গণকবর, জেনোসাইড, গণনির্যাতন, বুদ্ধিজীবী হত্যা]
+
+  রাজনৈতিক ইতিহাস:
+    aliases: [রাজনীতি, রাষ্ট্রব্যবস্থা, শাসনতন্ত্র, সংবিধান, নির্বাচন, political history]
+
+  সামাজিক ইতিহাস:
+    aliases: [সমাজ, সংস্কৃতি, ঐতিহ্য, লোকজ, লোকসংস্কৃতি, social history]
+
+  অর্থনীতি:
+    aliases: [অর্থনৈতিক ইতিহাস, বাণিজ্য, কৃষি, শিল্প, economy]
+
+  কূটনীতি:
+    aliases: [পররাষ্ট্রনীতি, আন্তর্জাতিক সম্পর্ক, দূতিয়ালি, diplomacy, foreign policy]
+
+  নারী:
+    aliases: [নারীবাদ, নারী অধিকার, বীরাঙ্গনা, women, নারী নির্যাতন, নারী মুক্তিযোদ্ধা]
+
+  ইসলাম:
+    aliases: [ইসলামী, মুসলিম, মুসলমান, ধর্ম, ইসলামিক, islam]
+
+  প্রাচীন ইতিহাস:
+    period: প্রাচীন যুগ
+    aliases: [সভ্যতা, প্রত্নতত্ত্ব, প্রাচীন বাংলা, ancient history]
+
+  ঢাকা:
+    aliases: [ঢাকার ইতিহাস, রাজধানী, dhaka]
+
+  শিক্ষা:
+    aliases: [বিশ্ববিদ্যালয়, পাঠ্যক্রম, শিক্ষাব্যবস্থা, education]
+
+  সাংবাদিকতা:
+    aliases: [গণমাধ্যম, সংবাদপত্র, পত্রিকা, সাময়িকপত্র, media, journalism]
+
+  # ---------------------------------------------------------------- added after mining
+  বঙ্গবন্ধু:
+    period: পাকিস্তান আমল
+    related: [মুক্তিযুদ্ধ, রাজনৈতিক ইতিহাস]
+    aliases: [শেখ মুজিব, শেখ মুজিবুর রহমান, মুজিব, জাতির পিতা, bangabandhu, mujib]
+
+  ছাত্র আন্দোলন:
+    aliases: [ছাত্র রাজনীতি, ছাত্র সংগ্রাম, ছাত্র সংগঠন, student movement]
+
+  গণঅভ্যুত্থান:
+    period: পাকিস্তান আমল
+    aliases: [ঊনসত্তর, ১৯৬৯, গণআন্দোলন, mass uprising]
+
+  ছয় দফা:
+    period: পাকিস্তান আমল
+    aliases: [ছয়দফা, ৬ দফা, six point]
+
+  আগরতলা মামলা:
+    period: পাকিস্তান আমল
+    aliases: [আগরতলা ষড়যন্ত্র মামলা, agartala]
+
+  যুদ্ধাপরাধ:
+    related: [গণহত্যা]
+    aliases: [যুদ্ধাপরাধী, রাজাকার, আলবদর, আলশামস, war crime, দালাল, collaborator]
+
+  মুক্তিবাহিনী:
+    period: পাকিস্তান আমল
+    related: [মুক্তিযুদ্ধ]
+    aliases: [গেরিলা বাহিনী, সেক্টর, রণাঙ্গন, মুক্তিফৌজ, কাদেরিয়া বাহিনী, mukti bahini]
+
+  শরণার্থী:
+    period: পাকিস্তান আমল
+    aliases: [উদ্বাস্তু, শরণার্থী শিবির, refugee, শরণার্থী ক্যাম্প]
+
+  বিজয়:
+    period: পাকিস্তান আমল
+    aliases: [বিজয় দিবস, আত্মসমর্পণ, ষোলই ডিসেম্বর, victory day, surrender]
+
+  সাম্প্রদায়িকতা:
+    aliases: [সাম্প্রদায়িক দাঙ্গা, দাঙ্গা, সংখ্যালঘু, communalism, riot]
+
+  ভাষা ও সাহিত্য:
+    aliases: [সাহিত্য সমালোচনা, সাহিত্য ইতিহাস, ভাষাতত্ত্ব, literature, বাংলা সাহিত্য]
+
+  শিল্পকলা:
+    aliases: [চিত্রকলা, ভাস্কর্য, নাট্যকলা, সংগীত, সঙ্গীত, চলচ্চিত্র, art, music, cinema]
+
+  বিজ্ঞান:
+    aliases: [প্রযুক্তি, পদার্থবিজ্ঞান, জীববিজ্ঞান, গণিত, science, technology]
+
+  দর্শন:
+    aliases: [দার্শনিক, চিন্তাধারা, মতবাদ, philosophy]
+
+  স্বাস্থ্য:
+    aliases: [চিকিৎসা, রোগ, জনস্বাস্থ্য, health, medicine]
+
+  পরিবেশ:
+    aliases: [নদী, জলবায়ু, প্রকৃতি, বন, environment, river]
+
+  আদিবাসী:
+    aliases: [ক্ষুদ্র নৃগোষ্ঠী, উপজাতি, পাহাড়ি, চাকমা, indigenous]
+
+  ভ্রমণ:
+    aliases: [ভ্রমণকাহিনি, পর্যটন, travel, travelogue]
+
+  ক্রীড়া:
+    aliases: [খেলাধুলা, ক্রিকেট, ফুটবল, sports]
+
+  প্রবাস:
+    aliases: [প্রবাসী, অভিবাসন, diaspora, migration]
+
+  ঔপনিবেশিক শাসন:
+    period: ব্রিটিশ আমল
+    aliases: [ইস্ট ইন্ডিয়া কোম্পানি, নীলবিদ্রোহ, সিপাহি বিদ্রোহ, ঔপনিবেশিকতা, colonial rule]
+
+  মুক্তিযুদ্ধের দলিল:
+    related: [মুক্তিযুদ্ধ]
+    aliases: [দলিলপত্র, প্রামাণ্য দলিল, নথি, archive, document]
+
+periods:
+  # Ranges are inclusive and must NOT overlap: a year that falls in two periods is
+  # resolved by whichever the loader happened to see first, which made 1971 -- the most
+  # common publication year in this catalogue -- land in a period chosen by dict order.
+  # Boundary years are assigned by history: 1947 is Partition, and 1971 is the war,
+  # which `মুক্তিযুদ্ধ` above already files under পাকিস্তান আমল.
+  প্রাচীন যুগ:
+    start: -1000
+    end: 1199
+    aliases: [প্রাচীন কাল, প্রাচীন বাংলা, ancient period]
+  মধ্যযুগ:
+    start: 1200
+    end: 1756
+    aliases: [সুলতানি আমল, মুঘল আমল, নবাবি আমল, medieval]
+  ব্রিটিশ আমল:
+    start: 1757
+    end: 1946
+    aliases: [ঔপনিবেশিক আমল, ইংরেজ আমল, ব্রিটিশ ভারত, colonial period, british raj]
+  পাকিস্তান আমল:
+    start: 1947
+    end: 1971
+    aliases: [পাকিস্তান শাসনামল, পাকিস্তানি আমল, পাকিস্তান আমলে, pakistan era, pakistan period, আইয়ুব আমল]
+  স্বাধীন বাংলাদেশ:
+    start: 1972
+    end: 2100
+    aliases: [স্বাধীনতা পরবর্তী, বাংলাদেশ আমল, post independence, স্বাধীনতা উত্তর]
+
+genres:
+  ইতিহাস:
+    aliases: [ঐতিহাসিক, ইতিহাস গ্রন্থ, history]
+  স্মৃতিকথা:
+    aliases: [আত্মজীবনী, স্মৃতিচারণ, জীবনী, দিনলিপি, memoir, autobiography, biography, রোজনামচা, ডায়েরি, আত্মকথা]
+  উপন্যাস:
+    aliases: [কাহিনি, ফিকশন, novel]
+  গল্প:
+    aliases: [ছোটগল্প, গল্পগ্রন্থ, গল্পসমগ্র, short story]
+  কবিতা:
+    aliases: [কাব্য, পদ্য, কাব্যগ্রন্থ, poetry, ছড়া]
+  প্রবন্ধ:
+    aliases: [নিবন্ধ, রচনা, essay, কলাম]
+  গবেষণা:
+    aliases: [গবেষণাগ্রন্থ, অভিসন্দর্ভ, research, thesis]
+  শিশু কিশোর:
+    aliases: [কিশোর, শিশুতোষ, ছোটদের, children, কিশোর উপন্যাস, শিশু সাহিত্য]
+  অনুবাদ:
+    aliases: [অনূদিত, translation]
+  রেফারেন্স:
+    aliases: [অভিধান, কোষগ্রন্থ, তথ্যকোষ, encyclopedia, dictionary]
+  নাটক:
+    aliases: [নাট্য, নাটিকা, মঞ্চনাটক, drama, play]
+  সাক্ষাৎকার:
+    aliases: [সাক্ষাত্কার, ইন্টারভিউ, interview, মুখোমুখি]
+  চিঠিপত্র:
+    aliases: [পত্রাবলি, পত্রগুচ্ছ, letters, চিঠি]
+  সংকলন:
+    aliases: [সমগ্র, রচনাবলি, নির্বাচিত, সংগ্রহ, anthology, collected works]
+  স্মারকগ্রন্থ:
+    aliases: [স্মরণিকা, অভিনন্দনগ্রন্থ, festschrift]
+
+occupations:
+  কূটনীতিক:
+    aliases: [রাষ্ট্রদূত, কনসাল, প্রাক্তন কনসাল, দূত, হাইকমিশনার, পররাষ্ট্র সচিব, diplomat, consul, ambassador, ex consulate]
+  সামরিক কর্মকর্তা:
+    aliases: [সেনা কর্মকর্তা, লেফটেন্যান্ট, মেজর, কর্নেল, ব্রিগেডিয়ার, জেনারেল, ক্যাপ্টেন, সেনাবাহিনী, army officer, স্কোয়াড্রন লিডার, কমোডর]
+  মুক্তিযোদ্ধা:
+    aliases: [বীর মুক্তিযোদ্ধা, বীর উত্তম, বীর বিক্রম, বীর প্রতীক, গেরিলা, freedom fighter, সেক্টর কমান্ডার]
+  শিক্ষক:
+    aliases: [অধ্যাপক, প্রফেসর, শিক্ষাবিদ, professor, teacher, উপাচার্য]
+  সাংবাদিক:
+    aliases: [সম্পাদক, প্রতিবেদক, journalist, editor, কলামিস্ট]
+  গবেষক:
+    aliases: [ইতিহাসবিদ, প্রত্নতত্ত্ববিদ, বিশ্লেষক, researcher, historian]
+  লেখক:
+    aliases: [কথাসাহিত্যিক, ঔপন্যাসিক, কবি, প্রাবন্ধিক, writer, author, poet]
+  রাজনীতিবিদ:
+    aliases: [রাজনৈতিক নেতা, সংসদ সদস্য, মন্ত্রী, politician, রাজনিতিক, সাংসদ, এমপি]
+  আইনজীবী:
+    aliases: [ব্যারিস্টার, অ্যাডভোকেট, বিচারপতি, lawyer, barrister]
+  চিকিৎসক:
+    aliases: [ডাক্তার, শল্যচিকিৎসক, doctor, physician]
+  আলেম:
+    aliases: [মাওলানা, মুফতি, ইসলামি চিন্তাবিদ, শায়খ, islamic scholar]
+  অর্থনীতিবিদ:
+    aliases: [অর্থনীতিবিদ্, economist, অর্থনীতির অধ্যাপক]
+  সরকারি কর্মকর্তা:
+    aliases: [আমলা, সচিব, প্রশাসক, জেলা প্রশাসক, civil servant, bureaucrat]
+  শিল্পী:
+    aliases: [চিত্রশিল্পী, সংগীতশিল্পী, কণ্ঠশিল্পী, অভিনেতা, artist, singer]
+  চলচ্চিত্রকার:
+    aliases: [পরিচালক, নির্মাতা, চিত্রপরিচালক, filmmaker, director]
+  অনুবাদক:
+    aliases: [ভাষান্তরকারী, translator]
+  প্রকাশক:
+    aliases: [প্রকাশনা সংস্থা, publisher]
+  সমাজকর্মী:
+    aliases: [সমাজসেবক, উন্নয়নকর্মী, social worker, activist]
+  বিজ্ঞানী:
+    aliases: [গবেষক বিজ্ঞানী, পদার্থবিদ, scientist]
+  প্রকৌশলী:
+    aliases: [ইঞ্জিনিয়ার, স্থপতি, engineer, architect]
+  ভাষাসৈনিক:
+    aliases: [ভাষা সৈনিক, language activist]
+
+places:
+  বাংলাদেশ:
+    aliases: [পূর্ব বাংলা, পূর্ব পাকিস্তান, বাংলা, bangladesh]
+  ঢাকা: {aliases: [ঢাকা শহর, dhaka]}
+  চট্টগ্রাম: {aliases: [chittagong, chattogram]}
+  সিলেট: {aliases: [sylhet]}
+  রাজশাহী: {aliases: [rajshahi]}
+  খুলনা: {aliases: [khulna]}
+  ভারত: {aliases: [হিন্দুস্তান, india]}
+  পাকিস্তান: {aliases: [পশ্চিম পাকিস্তান, pakistan]}
+  কলকাতা: {aliases: [কোলকাতা, calcutta, kolkata]}
+  ময়মনসিংহ: {aliases: [mymensingh]}
+  রংপুর: {aliases: [rangpur]}
+  বরিশাল: {aliases: [barisal, barishal]}
+  কুমিল্লা: {aliases: [comilla, cumilla]}
+  যশোর: {aliases: [jessore, jashore]}
+  দিনাজপুর: {aliases: [dinajpur]}
+  নোয়াখালী: {aliases: [noakhali]}
+  ফরিদপুর: {aliases: [faridpur]}
+  টাঙ্গাইল: {aliases: [tangail]}
+  পাবনা: {aliases: [pabna]}
+  বগুড়া: {aliases: [bogra, bogura]}
+  কুষ্টিয়া: {aliases: [kushtia]}
+  সিরাজগঞ্জ: {aliases: [sirajganj]}
+  নারায়ণগঞ্জ: {aliases: [narayanganj]}
+  গোপালগঞ্জ: {aliases: [gopalganj]}
+  খুলনা বিভাগ: {aliases: [সুন্দরবন, sundarban]}
+  পার্বত্য চট্টগ্রাম: {aliases: [পাহাড়, রাঙ্গামাটি, খাগড়াছড়ি, বান্দরবান, chittagong hill tracts]}
+  আসাম: {aliases: [assam]}
+  ত্রিপুরা: {aliases: [tripura]}
+  দিল্লি: {aliases: [দিল্লী, delhi]}
+  লন্ডন: {aliases: [london]}
+  যুক্তরাষ্ট্র: {aliases: [আমেরিকা, মার্কিন, usa, america]}
+  চীন: {aliases: [চায়না, china]}
+  সোভিয়েত ইউনিয়ন: {aliases: [রাশিয়া, সোভিয়েত, soviet, russia]}

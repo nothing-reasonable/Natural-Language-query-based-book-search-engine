@@ -1,0 +1,12 @@
+# Curated author identities. Anything listed here overrides the automatic matcher.
+#
+#   <canonical name>:
+#     - <alias as it appears in the catalogue>
+#     - <another alias>
+#
+# Use this for the cases fuzzy matching cannot decide, e.g. authors who publish under a
+# pen name, or two different people whose names differ by a single vowel sign.
+
+# আনিসুজ্জামান:
+#   - ড. আনিসুজ্জামান
+#   - অধ্যাপক আনিসুজ্জামান
