@@ -1,0 +1,127 @@
+# Relevance judgments for the 16 queries in queries.txt, against outputs/output_N.txt.
+#
+# `relevant` lists the RANKS (1-based, as printed in the output file) of results judged
+# to actually answer the query. Every other rank up to the last relevant one counts as
+# incorrect. Ranks are stable as long as the outputs are not regenerated -- re-run
+# run_queries.py and these must be re-judged.
+#
+# Judged by reading title + author for all 100 results of every query. Where a title
+# alone could not settle it, the book was judged NOT relevant, so these numbers are a
+# floor rather than a best case.
+#
+# Judging rules applied, per query type:
+#   * topical match with the *specific* ask, not the general subject. A generic
+#     মুক্তিযুদ্ধের গল্প collection does not answer "নারী মুক্তিযোদ্ধাদের গল্প".
+#   * form matters when the query names one: কবিতা means a poetry book, not criticism
+#     about poetry; কিশোর উপন্যাস means juvenile fiction, so কিশোর *ইতিহাস* is excluded.
+#   * place matters when the query names one: only books on districts inside Khulna
+#     division count for query 13.
+#   * English editions and translations of a relevant Bengali book count as relevant.
+
+1:
+  query: নারী মুক্তিযোদ্ধাদের গল্প
+  note: women in the 1971 war -- fighters, বীরাঙ্গনা, women's war narratives.
+  relevant: [1, 4, 5, 7, 8, 9, 10, 11, 12, 13, 15, 22, 31, 32, 35, 37, 38, 39, 40, 42,
+             43, 44, 45, 46, 49, 50, 51, 52, 53, 56, 57, 58, 59, 60, 61, 62, 65, 66,
+             67, 68, 69, 70, 72, 73, 74, 75, 76, 77, 80, 81, 82, 93, 100]
+
+2:
+  query: জেলা পর্যায়ের মুক্তিযুদ্ধ
+  note: the war in a named district or division, not the war in general.
+  relevant: [1, 2, 3, 4, 6, 7, 8, 10, 32, 39, 41, 45, 49, 74, 91]
+
+3:
+  query: গেরিলা মুক্তিযোদ্ধাদের জীবনী
+  note: memoirs and biographies of fighters/commanders. Fiction and general
+    histories excluded; Che Guevara's guerrilla memoirs are not মুক্তিযোদ্ধা.
+  relevant: [1, 2, 3, 4, 5, 7, 8, 9, 13, 14, 15, 18, 22, 24, 25, 28, 30, 31, 32, 33,
+             40, 42, 44, 46, 48, 49, 50, 51, 53, 56, 59, 60, 61, 64, 65, 67, 69, 73,
+             76, 79, 80, 82, 83, 85, 87, 93, 94, 96, 97, 98]
+
+4:
+  query: দেশপ্রেমের কবিতা
+  note: must be a book of poetry/ছড়া/কাব্য on a patriotic or war theme. Criticism
+    about poetry, and prose on the same subject, are excluded.
+  relevant: [2, 3, 5, 8, 9, 10, 13, 16, 35, 39, 42, 43, 44, 48, 50, 54, 55, 57, 58,
+             59, 60, 61, 63, 64, 68, 72, 78, 89, 90]
+
+5:
+  query: চা বাগানের গল্প
+  note: only two books in the whole list concern tea gardens. Both rank at the top,
+    which is why this query scores 1.0 on a metric that stops at the last correct hit.
+  relevant: [1, 2]
+
+6:
+  query: গণমাধ্যমে মুক্তিযুদ্ধ
+  note: press, radio, film and periodicals of/about 1971. July-2024 press coverage
+    and 19th-century press history excluded.
+  relevant: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20, 21,
+             23, 24, 28, 29, 44, 55, 66, 90]
+
+7:
+  query: মুক্তিযুদ্ধের কিশোর উপন্যাস
+  note: juvenile fiction about the war (novels and story collections). কিশোর
+    *ইতিহাস* volumes are history, not novels, so they are excluded.
+  relevant: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 20, 21, 22,
+             24, 26, 27, 29, 30, 31, 35, 36, 38, 39, 41, 42, 43, 44, 45, 46, 47, 48,
+             49, 50, 52, 53, 54, 55, 59]
+
+8:
+  query: বুদ্ধিজীবী হত্যাকাণ্ড
+  note: the killing of intellectuals in 1971, incl. the Al-Badr force that carried
+    it out. General genocide, war-crimes and 1975-assassination books excluded.
+  relevant: [1, 2, 3, 4, 5, 6, 8, 17, 20, 38, 49, 73]
+
+9:
+  query: ভাষা আন্দোলনে ছাত্রজনতা
+  note: the Language Movement, with student-participation titles central to it.
+  relevant: [3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 22, 24, 27,
+             30, 35, 38, 40, 41, 44, 45, 47, 50, 51, 58, 59, 61, 62, 63, 64, 65, 66,
+             67, 68, 69, 70, 71, 72, 73, 74, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86,
+             87, 88, 89, 91, 93, 95, 96, 97, 98, 100]
+
+10:
+  query: জুলাইয়ের আন্দোলন
+  note: the July 2024 uprising. From rank 35 the list collapses into ভাষা আন্দোলন
+    books -- the word আন্দোলন matched, the event did not.
+  relevant: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+             21, 22, 23, 24, 25, 26, 27, 28, 30, 31, 32, 33, 34, 39, 40, 46, 53]
+
+11:
+  query: সিপাহী বিদ্রোহ
+  note: the 1857 rebellion. Other বিদ্রোহ (Fakir-Sannyasi, Santal, peasant, BDR)
+    are different events and are excluded.
+  relevant: [1, 2, 3, 4, 5, 6, 8, 11, 12, 13, 15, 17, 50, 58]
+
+12:
+  query: নীল চাষিদের বিদ্রোহ
+  note: the indigo revolt. Bengal/subcontinent peasant-revolt surveys are counted
+    because the indigo revolt is a principal component of them; 20th-century
+    কৃষক আন্দোলন (Tebhaga era) postdates it and is not.
+  relevant: [1, 2, 3, 4, 7, 21]
+
+13:
+  query: খুলনা বিভাগে মুক্তিযুদ্ধ
+  note: Khulna division only. Pirojpur at rank 6 is Barisal division, and nothing
+    below rank 5 is in-division -- another 1.0 that reflects five good hits, not a
+    good list.
+  relevant: [1, 2, 3, 4, 5]
+
+14:
+  query: ঢাকা ও তার আশেপাশের মুক্তিযুদ্ধ
+  note: the war in Dhaka and its surroundings (Ashulia, Bikrampur). Books about
+    Dhaka that are not about the war are excluded.
+  relevant: [1, 2, 5, 6, 9, 10, 14, 45, 49]
+
+15:
+  query: বিভিন্ন জেলায় মুক্তিযুদ্ধ
+  note: same criterion as query 2.
+  relevant: [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 21, 24, 59]
+
+16:
+  query: মুক্তিযুদ্ধে গণহত্যা
+  note: the 1971 genocide -- killing fields, mass graves, martyr lists, Operation
+    Searchlight, atrocity documentation. Genocide elsewhere in the world excluded.
+  relevant: [1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 20, 21, 23, 24,
+             27, 28, 29, 34, 36, 37, 43, 44, 47, 54, 60, 63, 65, 66, 67, 68, 73, 76,
+             78, 87]
