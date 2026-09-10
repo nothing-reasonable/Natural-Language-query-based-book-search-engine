@@ -97,7 +97,8 @@ Evaluation Rules:
 
 Output Requirement:
 You MUST return ONLY valid JSON (either a JSON array or a JSON object with a "results" key).
-Do NOT include conversational greetings, conclusions, or remarks.
+Do NOT include thinking tags, reasoning, conversational greetings, conclusions, or remarks.
+Start directly with '['.
 Format example:
 [
   {"rank": 1, "score": 3, "reason": "Direct focus on freedom fighters"},
@@ -193,29 +194,95 @@ def get_book_metadata(
 
 # --------------------------------------------------------------------------- LM Studio Client
 
+# Approximate chars-per-token for multilingual text (conservative)
+_CHARS_PER_TOKEN = 2.5
+# Output tokens reserved for the JSON answer (per book in batch)
+_OUTPUT_TOKENS_PER_BOOK = 35
+# Hard cap on prompt characters sent to avoid 400s on small context models
+_PROMPT_CHAR_CAP = 6000
+
+
 class LMStudioScorer:
-    def __init__(self, base_url: str = "http://localhost:1234/v1", model: str = "", timeout: float = 120.0):
+    def __init__(self, base_url: str = "http://localhost:1234/v1", model: str = "",
+                 timeout: float = 180.0, max_gen_tokens: int = 0):
         self.base_url = base_url.rstrip("/")
         self.client = httpx.Client(base_url=self.base_url, timeout=timeout)
         self.model = model
+        # max_gen_tokens=0 means auto-compute from model context size
+        self._max_gen_tokens = max_gen_tokens
+        self._context_length: int = 0  # cached from /api/v0/models
 
     def resolve_model(self) -> str:
-        """Finds the loaded or first available model in LM Studio."""
+        """Finds the loaded chat model in LM Studio.
+        Prefers the resident model reported by /api/v0/models over blind /v1/models listing.
+        Also caches the model's context_length when available.
+        """
+        if self.model and self._context_length:
+            return self.model
+
+        # 1. Try native LM Studio /api/v0/models endpoint to find the loaded model
+        root = self.base_url
+        for suffix in ("/v1", "/api/v0"):
+            if root.endswith(suffix):
+                root = root[:-len(suffix)]
+        try:
+            resp = httpx.get(f"{root}/api/v0/models", timeout=5.0)
+            if resp.is_success:
+                loaded = [m for m in resp.json().get("data", []) if m.get("state") == "loaded"]
+                chat_loaded = [m for m in loaded if m.get("type") != "embeddings" and m.get("id")]
+                if chat_loaded:
+                    best = chat_loaded[0]
+                    if not self.model:
+                        self.model = best["id"]
+                    # Cache context length (try multiple field names used by LM Studio versions)
+                    ctx = (best.get("context_length") or best.get("max_context_length")
+                           or best.get("n_ctx") or 0)
+                    if ctx:
+                        self._context_length = int(ctx)
+                    return self.model
+        except Exception:
+            pass
+
         if self.model:
             return self.model
+
+        # 2. Try /v1/models, excluding embedding and reranker models
         try:
             resp = self.client.get("/models")
-            resp.raise_for_status()
-            data = resp.json().get("data", [])
-            if not data:
-                raise RuntimeError("No models found in LM Studio /v1/models")
-            self.model = data[0]["id"]
-            return self.model
-        except Exception as exc:
-            raise ConnectionError(
-                f"Cannot connect to LM Studio at {self.base_url}. "
-                "Ensure LM Studio is running with local server started. Error: " + str(exc)
-            ) from exc
+            if resp.is_success:
+                data = resp.json().get("data", [])
+                embed_hints = ("embed", "bge", "e5", "gte", "minilm", "nomic", "rerank", "bert")
+                chat_models = [m for m in data
+                               if not any(h in m.get("id", "").lower() for h in embed_hints)]
+                if chat_models:
+                    best = chat_models[0]
+                    self.model = best["id"]
+                    ctx = best.get("context_length") or best.get("max_context_length") or 0
+                    if ctx:
+                        self._context_length = int(ctx)
+                    return self.model
+                if data:
+                    self.model = data[0]["id"]
+                    return self.model
+        except Exception:
+            pass
+
+        # 3. Default to empty string: LM Studio will use whatever model is currently active
+        self.model = ""
+        return ""
+
+    def _safe_max_gen(self, batch_size: int) -> int:
+        """Returns a safe max_tokens for generation that fits the model's context."""
+        if self._max_gen_tokens > 0:
+            return self._max_gen_tokens
+        # Each book needs roughly 35 output tokens for its JSON entry
+        needed = batch_size * _OUTPUT_TOKENS_PER_BOOK + 64
+        if self._context_length > 0:
+            # Reserve 70% of context for the prompt, 30% for generation
+            gen_budget = max(256, int(self._context_length * 0.30))
+            return min(needed, gen_budget)
+        # No context info: be conservative
+        return min(needed, 512)
 
     def score_batch(
         self,
@@ -223,72 +290,166 @@ class LMStudioScorer:
         books_batch: list[dict[str, Any]],
         max_retries: int = 3,
     ) -> list[dict[str, Any]]:
-        """Scores a batch of books using the LM Studio model."""
+        """Scores a batch of books using the LM Studio model with adaptive retries for 400 errors.
+
+        Strategy across retries:
+          attempt 0: system+user split, moderately truncated metadata, auto max_tokens
+          attempt 1: merged single-user message (fixes models rejecting system role),
+                     shorter desc/bio, smaller max_tokens
+          attempt 2: title+author ONLY (no desc/bio), minimal prompt, very small max_tokens
+        """
         model_id = self.resolve_model()
+        n = len(books_batch)
 
-        # Build user message with book details
-        items_text = []
-        for b in books_batch:
-            rank = b["rank"]
-            title = b["title"]
-            author = b["author"]
-            publisher = b.get("publisher", "")
-            year = b.get("publication_year", "")
-            bio = b.get("author_bio", "")
-            desc = b.get("description", "")
+        def build_content(
+            max_desc_len: int = 300,
+            max_bio_len: int = 100,
+            title_only: bool = False,
+        ) -> str:
+            items_text = []
+            for b in books_batch:
+                rank = b["rank"]
+                title = b["title"]
+                author = b["author"]
 
-            # Trim very long descriptions to ~1200 chars to be safe on token budget
-            if len(desc) > 1200:
-                desc = desc[:1200] + "... [truncated]"
-            if len(bio) > 400:
-                bio = bio[:400] + "... [truncated]"
+                if title_only:
+                    item_str = f"[Rank {rank}] Title: {title} | Author: {author}\n"
+                else:
+                    publisher = b.get("publisher", "")
+                    year = b.get("publication_year", "")
+                    bio = (b.get("author_bio", "") or "")[:max_bio_len]
+                    desc = (b.get("description", "") or "")[:max_desc_len]
+                    if len(b.get("author_bio", "") or "") > max_bio_len:
+                        bio += "..."
+                    if len(b.get("description", "") or "") > max_desc_len:
+                        desc += "..."
+                    item_str = (
+                        f"[Rank {rank}]\n"
+                        f"Title: {title}\n"
+                        f"Author: {author} | Publisher: {publisher} | Year: {year}\n"
+                        f"Bio: {bio or 'N/A'}\n"
+                        f"Desc: {desc or 'N/A'}\n"
+                    )
+                items_text.append(item_str)
 
-            item_str = (
-                f"[Rank {rank}]\n"
-                f"Title: {title}\n"
-                f"Author: {author}\n"
-                f"Publisher: {publisher} | Year: {year}\n"
-                f"Author Bio: {bio or 'N/A'}\n"
-                f"Description: {desc or 'N/A'}\n"
+            books_block = "\n".join(items_text)
+            footer = (
+                f'\nReturn a JSON array with {n} objects, one per rank:\n'
+                f'[{{"rank":<rank>,"score":<0-3>,"reason":"<why>"}}]'
             )
-            items_text.append(item_str)
-
-        user_content = (
-            f"Search Query: \"{query}\"\n\n"
-            f"Evaluate the following {len(books_batch)} candidate books. "
-            f"Assign each book a relevance score from 0 to 3.\n\n"
-            + "\n".join(items_text)
-            + "\n\nOutput JSON array format: [{\"rank\": <rank>, \"score\": <0-3>, \"reason\": \"<explanation>\"}]"
-        )
-
-        payload = {
-            "model": model_id,
-            "messages": [
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": user_content},
-            ],
-            "temperature": 0.1,
-            "max_tokens": 2048,
-        }
+            return (
+                f'Search Query: "{query}"\n\n'
+                f'Rate each of the {n} books (0=irrelevant,1=tangential,2=relevant,3=excellent):\n\n'
+                + books_block
+                + footer
+            )
 
         last_error = None
         for attempt in range(max_retries):
+            if attempt == 0:
+                user_content = build_content(max_desc_len=300, max_bio_len=100)
+                messages = [
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": user_content},
+                ]
+                current_model = model_id
+                max_toks = self._safe_max_gen(n)
+            elif attempt == 1:
+                # Merge system prompt into user message (fixes models that reject system role)
+                user_content = build_content(max_desc_len=150, max_bio_len=60)
+                messages = [
+                    {"role": "user",
+                     "content": f"{SYSTEM_PROMPT}\n\n{user_content}"},
+                ]
+                current_model = model_id
+                max_toks = max(256, self._safe_max_gen(n) - 128)
+            else:
+                # Title+author only — absolute minimal prompt to stay under context limit
+                user_content = build_content(title_only=True)
+                messages = [
+                    {"role": "user",
+                     "content": f"{SYSTEM_PROMPT}\n\n{user_content}"},
+                ]
+                current_model = ""  # let LM Studio pick whatever is loaded
+                max_toks = max(128, n * _OUTPUT_TOKENS_PER_BOOK + 32)
+
+            # Hard-cap: if the combined prompt is too large, log and skip this attempt
+            full_prompt_chars = sum(len(m["content"]) for m in messages)
+            if full_prompt_chars > _PROMPT_CHAR_CAP * 3 and attempt < max_retries - 1:
+                last_error = f"Prompt too long ({full_prompt_chars} chars), skipping attempt {attempt}"
+                print(f"[debug] {last_error}", file=sys.stderr)
+                continue
+
+            payload: dict[str, Any] = {
+                "messages": messages,
+                "temperature": 0.0,
+                "max_tokens": max_toks,
+            }
+            if current_model:
+                payload["model"] = current_model
+
             try:
                 resp = self.client.post("/chat/completions", json=payload)
-                resp.raise_for_status()
+                if not resp.is_success:
+                    # Log the actual 400 body to help diagnose the problem
+                    try:
+                        err_body = resp.json()
+                        err_msg = err_body.get("error", {}).get("message", "") or str(err_body)[:300]
+                    except Exception:
+                        err_msg = resp.text[:300]
+                    last_error = f"HTTP {resp.status_code}: {err_msg}"
+                    print(f"[debug] LM Studio error on attempt {attempt}: {last_error}", file=sys.stderr)
+                    resp.raise_for_status()
+
                 response_json = resp.json()
-                content = response_json["choices"][0]["message"]["content"]
+                choice = response_json["choices"][0]
+                message_obj = choice.get("message", {})
+                content = message_obj.get("content", "") or ""
+                reasoning = (message_obj.get("reasoning_content", "")
+                             or message_obj.get("reasoning", "") or "")
+                finish_reason = choice.get("finish_reason", "")
+
+                # Empty content with finish_reason="length" means max_tokens hit — retry smaller
+                if not content.strip() and finish_reason == "length":
+                    last_error = f"Response truncated to empty (max_tokens={max_toks} too small?)"
+                    print(f"[debug] {last_error}", file=sys.stderr)
+                    continue
+
                 parsed = self._extract_json_array(content)
+                if (parsed is None or len(parsed) == 0) and reasoning:
+                    parsed = self._extract_json_array(reasoning)
+
                 if parsed is not None and len(parsed) > 0:
                     return parsed
-                last_error = f"Model output could not be parsed as JSON: {repr(content[:250])}"
-            except Exception as e:
-                last_error = str(e)
+
+                preview = (content if content
+                           else (f"[reasoning: {reasoning[:200]}]" if reasoning else "[empty]"))
+                last_error = (f"Output not parseable as JSON "
+                              f"(finish={finish_reason}): {repr(preview[:200])}")
+            except httpx.HTTPStatusError:
+                time.sleep(1.5 + attempt)
+            except Exception as exc:
+                last_error = str(exc)
                 time.sleep(1.0 + attempt)
 
-        print(f"[warn] LLM scoring batch failed after {max_retries} attempts: {last_error}", file=sys.stderr)
-        # Fallback: return default 0 scores
-        return [{"rank": b["rank"], "score": 0, "reason": "Evaluation failed/fallback"} for b in books_batch]
+        # Dynamic fallback: if all attempts failed and batch has more than 1 book, split in half
+        if len(books_batch) > 1:
+            mid = len(books_batch) // 2
+            label = last_error[:80] if last_error else "unknown error"
+            print(
+                f"[info] Splitting batch of {n} books into ({mid}+{n-mid}) "
+                f"due to: {label}",
+                file=sys.stderr,
+            )
+            return (
+                self.score_batch(query, books_batch[:mid], max_retries=max_retries)
+                + self.score_batch(query, books_batch[mid:], max_retries=max_retries)
+            )
+
+        print(f"[warn] LLM scoring failed for book rank {books_batch[0]['rank']}: {last_error}",
+              file=sys.stderr)
+        return [{"rank": b["rank"], "score": 0, "reason": "Evaluation failed/fallback"}
+                for b in books_batch]
 
     @staticmethod
     def _extract_json_array(text: str) -> list[dict[str, Any]] | None:
@@ -536,8 +697,10 @@ def main() -> int:
                         help="LM Studio API base URL (default: http://localhost:1234/v1)")
     parser.add_argument("--model", type=str, default="",
                         help="LM Studio model ID (default: auto-detect loaded model)")
-    parser.add_argument("--batch-size", type=int, default=10,
-                        help="Number of candidate books to evaluate per LLM prompt (default: 10)")
+    parser.add_argument("--batch-size", type=int, default=5,
+                        help="Books evaluated per LLM call (default: 5; reduce if you see 400s)")
+    parser.add_argument("--max-tokens", type=int, default=0,
+                        help="Override max generation tokens per call (default: auto from context size)")
     parser.add_argument("--k", type=str, default="1,3,5,10,20,50,100",
                         help="Comma-separated k values for NDCG@k (default: 1,3,5,10,20,50,100)")
     parser.add_argument("--queries", type=str, default="",
@@ -584,13 +747,20 @@ def main() -> int:
             scorer = MockScorer()
         else:
             print(f"Connecting to LM Studio at {args.base_url}...")
-            scorer = LMStudioScorer(base_url=args.base_url, model=args.model)
+            scorer = LMStudioScorer(
+                base_url=args.base_url,
+                model=args.model,
+                max_gen_tokens=args.max_tokens,
+            )
             try:
                 active_model = scorer.resolve_model()
-                print(f"Connected to LM Studio successfully. Using model: {active_model}")
+                ctx_info = (f", context={scorer._context_length} tokens"
+                            if scorer._context_length else "")
+                print(f"Connected to LM Studio. Model: {active_model or '(auto)'}{ctx_info}")
             except Exception as e:
                 print(f"\n[ERROR] {e}", file=sys.stderr)
-                print("Tip: Start LM Studio and load a model, or run with --mock for dry testing.", file=sys.stderr)
+                print("Tip: Start LM Studio and load a model, or run with --mock for dry testing.",
+                      file=sys.stderr)
                 return 1
 
     # Find output files
