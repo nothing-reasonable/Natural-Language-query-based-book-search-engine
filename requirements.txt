@@ -1,0 +1,48 @@
+# Dependencies of the live pipeline (search/, ingest/, cli.py, web.py, the scripts).
+#
+#     pip install torch --index-url https://download.pytorch.org/whl/cpu
+#     pip install -r requirements.txt
+#
+# torch is listed here but is best installed first and explicitly, because the wheel you
+# want depends on your hardware: the command above pulls the CPU build (~250 MB) instead
+# of the default CUDA one (~2.5 GB). Both work -- `embedding.py` and `rerank.py` each try
+# CUDA and fall back to CPU rather than failing.
+#
+# `legacy/` is deliberately not covered: it needs faiss, rank_bm25 and beautifulsoup4,
+# and nothing in the current pipeline imports it.
+#
+# Unpinned on purpose -- this is a research project that is run, not deployed, and a
+# pinned set would go stale unnoticed. Pin it with `pip freeze` if you need a build to be
+# reproducible for the thesis write-up.
+
+# --- core ---
+pydantic
+pydantic-settings
+pandas
+numpy
+pyyaml
+rich
+typer
+rapidfuzz
+
+# --- LM Studio client (OpenAI-compatible /v1) ---
+openai
+httpx
+
+# --- indexes: BM25, vectors, knowledge graph ---
+bm25s
+lancedb
+pyarrow
+networkx
+
+# --- embeddings and the cross-encoder reranker ---
+# Pulls transformers and tokenizers. First run downloads the models named in config.py:
+# microsoft/harrier-oss-v1-270m and BAAI/bge-reranker-v2-m3 (~2.2 GB).
+torch
+sentence-transformers
+
+# --- web UI (cli.py serve) ---
+flask
+
+# --- tests ---
+pytest

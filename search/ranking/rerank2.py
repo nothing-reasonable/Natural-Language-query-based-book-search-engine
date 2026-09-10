@@ -33,8 +33,13 @@ gemma-4-e4b, P(Yes) reads:
     unrelated (a cookbook)                        0.00000003
 
 i.e. it separates the two *near* misses that fusion cannot separate, which is exactly the
-job of a second stage. Cost is one prompt of ~90 tokens and one decoded token per
-candidate: ~0.35 s each on this laptop, ~6 s for a shortlist of 16 at `llm_workers=1`.
+job of a second stage. Cost is one short prompt and one decoded token per candidate. The
+figures above were measured when the passage was a title, an author and 400 characters of
+blurb -- ~90 prompt tokens, ~0.35 s each, ~6 s for a shortlist of 16 at `llm_workers=1`.
+The passage now carries up to `rerank_flap_chars` of flap (see `rerank._passage`), so
+prefill is several times that; the decoded token, which is where the score comes from, is
+unchanged. The query sits ahead of the book precisely so this larger prompt still shares
+a cached prefix across the shortlist -- see `_user_prompt`.
 
 Two things about this particular model had to be handled, both verified against the
 running server rather than assumed:
@@ -74,20 +79,41 @@ from search.ranking.rerank import make_reranker as _make_reranker_v1
 
 log = logging.getLogger(__name__)
 
+# The grounding paragraph both prompts share. The model is being asked about real books,
+# many of them well known, and without this it answers from what it thinks it knows about
+# the title rather than from the record in front of it -- which is exactly the failure the
+# catalogue text exists to prevent. Kept in English because that is the language these
+# instruct models follow most reliably, while the question and the record stay in Bengali.
+_GROUNDING = (
+    "The book is described ONLY by its catalogue record: its title, its author, its "
+    "publication year, and the flap text printed on the book itself. Judge using that "
+    "text and nothing else. Do not use anything you may know about this book, this "
+    "author, or this subject from outside the record shown. The title and the flap are "
+    "the evidence; if they do not show that the book answers the query, it does not."
+)
+
 JUDGE_SYSTEM = (
     "You are a relevance judge for a Bengali book search engine. "
     "You are shown one search query and one book. "
+    f"{_GROUNDING} "
     "Answer with exactly one word: Yes or No."
 )
-JUDGE_QUESTION = "এই বইটি কি প্রশ্নের উত্তর হিসেবে দেখানোর মতো প্রাসঙ্গিক? Yes বা No।"
+JUDGE_QUESTION = (
+    "উপরের শিরোনাম ও ফ্ল্যাপের বিবরণ অনুযায়ী এই বইটি কি প্রশ্নের উত্তর হিসেবে "
+    "দেখানোর মতো প্রাসঙ্গিক? Yes বা No।"
+)
 
 GRADE_SYSTEM = (
     "You are a relevance judge for a Bengali book search engine. "
+    f"{_GROUNDING} "
     "Rate how well the book answers the query on a 0-10 scale "
     "(10 = exactly what was asked for, 0 = unrelated). "
     "Reply with the number only."
 )
-GRADE_QUESTION = "০ থেকে ১০ স্কেলে প্রাসঙ্গিকতা কত? শুধু সংখ্যাটি লেখো।"
+GRADE_QUESTION = (
+    "উপরের শিরোনাম ও ফ্ল্যাপের বিবরণ অনুযায়ী ০ থেকে ১০ স্কেলে প্রাসঙ্গিকতা কত? "
+    "শুধু সংখ্যাটি লেখো।"
+)
 
 # First-token spellings that count as an affirmative / negative answer. Whitespace and
 # case are stripped before matching; the Bengali forms show up in the top-20 often
@@ -153,7 +179,7 @@ class LMStudioReranker:
             return fallback
         scores = [fallback[i] if value is None else value for i, value in enumerate(judged)]
         _log_pairs(log, self.model, query,
-                   [(query, _passage(r)) for r in records], scores)
+                   [(query, _passage(r, self.settings)) for r in records], scores)
         return scores
 
     def score_passages(self, query: str, passages: list[str]) -> list[float | None]:
@@ -166,7 +192,11 @@ class LMStudioReranker:
         with self._lock:
             if key in self._cache:
                 return self._cache[key]
-        value = self._judge(query, _truncate(_passage(record), self.settings.lmstudio_rerank_max_chars))
+        value = self._judge(
+            query,
+            _truncate(_passage(record, self.settings),
+                      self.settings.lmstudio_rerank_max_chars),
+        )
         with self._lock:
             if len(self._cache) > 4096:
                 self._cache.clear()
@@ -379,13 +409,19 @@ if __name__ == "__main__":  # a smoke test that needs the server but not the ind
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     reranker = LMStudioReranker(LMStudio(default_settings))
     demo_query = "হুমায়ূন আহমেদের মুক্তিযুদ্ধের উপন্যাস"
+    # Shaped exactly as `rerank._passage` renders a record: flap above the inferred tags.
     demo_books = {
         "right book": "শিরোনাম: জোছনা ও জননীর গল্প\nলেখক: হুমায়ূন আহমেদ\n"
-                      "বিষয়: মুক্তিযুদ্ধ, উপন্যাস\nবিবরণ: ১৯৭১ সালের মুক্তিযুদ্ধ নিয়ে মহাকাব্যিক উপন্যাস।",
+                      "বিবরণ (ফ্ল্যাপ): ১৯৭১ সালের মুক্তিযুদ্ধ নিয়ে মহাকাব্যিক উপন্যাস।\n"
+                      "বিষয়: মুক্তিযুদ্ধ, উপন্যাস",
         "same subject, other author": "শিরোনাম: একাত্তরের দিনগুলি\nলেখক: জাহানারা ইমাম\n"
+                                      "বিবরণ (ফ্ল্যাপ): একাত্তরে ঢাকায় কাটানো দিনগুলোর দিনলিপি।\n"
                                       "বিষয়: মুক্তিযুদ্ধ, স্মৃতিকথা",
-        "same author, other subject": "শিরোনাম: হিমু\nলেখক: হুমায়ূন আহমেদ\nবিষয়: সমকালীন উপন্যাস",
-        "unrelated": "শিরোনাম: রান্নার সহজ পদ্ধতি\nলেখক: সিদ্দিকা কবীর\nবিষয়: রান্না",
+        "same author, other subject": "শিরোনাম: হিমু\nলেখক: হুমায়ূন আহমেদ\n"
+                                      "বিবরণ (ফ্ল্যাপ): খালি পায়ে শহরে ঘুরে বেড়ানো এক তরুণের গল্প।\n"
+                                      "বিষয়: সমকালীন উপন্যাস",
+        "unrelated": "শিরোনাম: রান্নার সহজ পদ্ধতি\nলেখক: সিদ্দিকা কবীর\n"
+                     "বিবরণ (ফ্ল্যাপ): ঘরে বসে রান্না শেখার সহজ রেসিপি সংকলন।\nবিষয়: রান্না",
     }
     print(f"query: {demo_query}  (mode: {reranker._mode}, model: {reranker.model})")
     for label, values in zip(demo_books, reranker.score_passages(demo_query, list(demo_books.values()))):

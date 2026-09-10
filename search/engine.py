@@ -217,7 +217,7 @@ class SearchEngine:
                 book_id=record.book.book_id,
                 title=record.book.title,
                 fusion_rank=position,
-                passage=_passage(record),
+                passage=_passage(record, self.settings),
                 score=round(float(value), 4),
                 final_rank=final_rank.get(record.book.book_id),
             )

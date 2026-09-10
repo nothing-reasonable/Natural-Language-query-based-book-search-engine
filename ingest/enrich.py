@@ -21,13 +21,24 @@ from search.query.taxonomy import Taxonomy, get_taxonomy
 
 log = logging.getLogger(__name__)
 
-SYSTEM_PROMPT = """তুমি একজন অভিজ্ঞ গ্রন্থাগার বিশেষজ্ঞ। তোমার কাজ বাংলা বইয়ের মেটাডেটা থেকে
-কাঠামোবদ্ধ তথ্য বের করা।
+SYSTEM_PROMPT = """তুমি একজন অভিজ্ঞ গ্রন্থাগার বিশেষজ্ঞ। তোমার কাজ বাংলা বইয়ের ক্যাটালগ-রেকর্ড
+থেকে কাঠামোবদ্ধ তথ্য বের করা।
+
+তুমি যা পাবে তা হলো বইটির ক্যাটালগে লেখা তথ্য: শিরোনাম, লেখক, প্রকাশক, প্রকাশকাল,
+বইয়ের ফ্ল্যাপে ছাপা বিবরণ এবং লেখক পরিচিতি। এই লেখাটুকুই তোমার একমাত্র উৎস।
 
 নিয়ম:
 - সব উত্তর বাংলায় দাও।
-- যেখানে সম্ভব নিচের নিয়ন্ত্রিত তালিকা থেকে শব্দ বেছে নাও; তালিকায় না থাকলে সংক্ষিপ্ত বাংলা পরিভাষা লেখো।
+- শিরোনাম ও ফ্ল্যাপের বিবরণকেই প্রধান উৎস ধরো; বইটি কী নিয়ে, তা ওখানেই লেখা আছে।
+- বই, লেখক বা বিষয় সম্পর্কে বাইরে থেকে জানা কোনো তথ্য ব্যবহার করবে না। যা দেখানো
+  হয়েছে শুধু তা থেকেই বের করো।
 - অনুমান করো না; যে তথ্য লেখায় নেই তা বাদ দাও, খালি তালিকা দেওয়া গ্রহণযোগ্য।
+- ফ্ল্যাপের বিবরণ যদি খালি বা অর্থহীন থাকে, তবে শিরোনাম থেকে যা নিশ্চিতভাবে বোঝা যায়
+  শুধু ততটুকু দাও — বাকি তালিকা খালি রাখো।
+- author_roles ও author_periods কেবল লেখক পরিচিতি থেকে নাও, বইয়ের বিবরণ থেকে নয়।
+- summary: ফ্ল্যাপের বিবরণকে এক বাক্যে সংক্ষেপ করো, ওই বিবরণের কথাই ব্যবহার করে।
+  ফ্ল্যাপের বিবরণ না থাকলে summary খালি রাখো — নিজে থেকে কিছু লিখবে না।
+- যেখানে সম্ভব নিচের নিয়ন্ত্রিত তালিকা থেকে শব্দ বেছে নাও; তালিকায় না থাকলে সংক্ষিপ্ত বাংলা পরিভাষা লেখো।
 - প্রতিটি তালিকায় সর্বোচ্চ ৫টি আইটেম।
 - শুধুমাত্র JSON ফেরত দাও।
 
@@ -37,16 +48,22 @@ SYSTEM_PROMPT = """তুমি একজন অভিজ্ঞ গ্রন্�
 কাল (periods): {periods}
 লেখকের ভূমিকা (author_roles): {occupations}"""
 
-USER_TEMPLATE = """শিরোনাম: {title}
+# The flap comes *before* the author biography, deliberately. The bio was first, and on a
+# small local model with a 2,000-character bio ahead of the description the biography
+# dominated: books came back tagged with their author's career rather than their own
+# subject. The bio is also byte-identical across every book by the same person, so it
+# cannot distinguish one of their books from another -- only the flap can.
+USER_TEMPLATE = """ক্যাটালগ রেকর্ড
+শিরোনাম: {title}
 লেখক: {author}
 প্রকাশক: {publisher}
 প্রকাশকাল: {year}
 
+বইয়ের বিবরণ (ফ্ল্যাপ):
+{description}
+
 লেখক পরিচিতি:
 {author_bio}
-
-বইয়ের বিবরণ:
-{description}
 
 {extra}"""
 
@@ -104,8 +121,12 @@ class Enricher:
             author=book.author,
             publisher=book.publisher or "-",
             year=book.publish_year or "-",
-            author_bio=book.author_bio[:2000] or "-",
             description=book.description[:3000] or "-",
+            # Trimmed from 2,000 to 800 characters so the flap keeps the larger share of
+            # the context. The bio is about the author, and only `author_roles` and
+            # `author_periods` are read from it -- an occupation is stated in the first
+            # sentence or two, not on line thirty.
+            author_bio=book.author_bio[:800] or "-",
             extra=extra,
         )
         return self.llm.structured(system, user, Enrichment)

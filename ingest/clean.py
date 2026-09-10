@@ -73,9 +73,17 @@ def strip_boilerplate(text: str) -> str:
     return " ".join(kept).strip()
 
 
-# Fields that count towards `metadata_quality`.
+# Fields that count towards `metadata_quality` -- the columns the source CSVs actually
+# carry, and no others.
+#
+# `table_of_contents` used to be in this list. No CSV supplies it, so every book scored
+# at most 6/7 and the signal could never reach 1.0; worse, the one field that genuinely
+# discriminates was diluted by a constant. `description` is that field: ~23% of rows lose
+# their flap entirely to `strip_boilerplate` below, so its presence is the difference
+# between a record that says something about the book and one that does not -- which is
+# what `metadata_quality` is weighted 5% of the final score to express.
 QUALITY_FIELDS = ("title", "author", "author_bio", "publisher", "description",
-                  "publish_year", "table_of_contents")
+                  "publish_year")
 
 ALIAS_FILE = Path(__file__).resolve().parent.parent / "data" / "author_aliases.yaml"
 

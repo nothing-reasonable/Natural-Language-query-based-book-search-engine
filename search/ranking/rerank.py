@@ -14,6 +14,10 @@ score -- and took 50 seconds to do it.
 
 Stage 2 -- blend the reranker score with the other ranking signals the design calls for:
 rank fusion, knowledge-graph match confidence, metadata quality, popularity, availability.
+
+Whichever backend runs, it reads the same thing: `_passage`, which puts the book's title,
+author and **flap** at the top and the model-inferred tags underneath. That ordering is
+load-bearing rather than cosmetic -- see `_passage` and `_blurb` for what it fixes.
 """
 
 from __future__ import annotations
@@ -31,7 +35,17 @@ from search.retrieval.fusion import Fused
 log = logging.getLogger(__name__)
 
 RERANK_SYSTEM = """তুমি একটি বাংলা বই-অনুসন্ধান ইঞ্জিনের রির‍্যাঙ্কার।
-ব্যবহারকারীর প্রশ্নের সাথে প্রতিটি বইয়ের প্রাসঙ্গিকতা ০ থেকে ১০ স্কেলে নম্বর দাও।
+
+প্রতিটি বই সম্পর্কে তুমি শুধু ক্যাটালগে যা লেখা আছে তাই দেখছ: শিরোনাম, লেখক এবং
+বইয়ের ফ্ল্যাপে ছাপা বিবরণ। ঠিক এই লেখাটুকুর ভিত্তিতেই সিদ্ধান্ত নাও।
+
+নিয়ম:
+- শিরোনাম ও ফ্ল্যাপের বিবরণকেই প্রধান প্রমাণ ধরো।
+- বই, লেখক বা বিষয় সম্পর্কে বাইরে থেকে জানা কোনো তথ্য ব্যবহার করবে না।
+- দেখানো লেখায় প্রশ্নের উত্তরের প্রমাণ না থাকলে নম্বর কম দাও, অনুমান করে বাড়াবে না।
+- ফ্ল্যাপ যদি প্রশ্নের বিষয়ের কথা স্পষ্টভাবে বলে, তবেই উঁচু নম্বর।
+
+প্রাসঙ্গিকতা ০ থেকে ১০ স্কেলে নম্বর দাও।
 ১০ = হুবহু যা চাওয়া হয়েছে, ০ = সম্পূর্ণ অপ্রাসঙ্গিক।
 প্রতিটি বইয়ের জন্য তার id ও score দাও। শুধু JSON ফেরত দাও।"""
 
@@ -69,9 +83,11 @@ class NoOpReranker:
 class LLMReranker:
     name = "llm"
 
-    def __init__(self, llm: LMStudio, batch_size: int = 8):  # 8 books ~ 100 output tokens
+    def __init__(self, llm: LMStudio, batch_size: int = 8,  # 8 books ~ 100 output tokens
+                 settings: Settings = default_settings):
         self.llm = llm
         self.batch_size = batch_size
+        self.settings = settings
         self.model_name = ""  # resolved server-side; asking here would cost a round trip
 
     def score(self, query: str, records: list[IndexedBook]) -> list[float]:
@@ -88,7 +104,7 @@ class LLMReranker:
         return scores
 
     def _score_batch(self, query: str, batch: list[IndexedBook]) -> list[float]:
-        listing = "\n\n".join(_describe(i, r) for i, r in enumerate(batch))
+        listing = "\n\n".join(_describe(i, r, self.settings) for i, r in enumerate(batch))
         user = f"প্রশ্ন: {query}\n\nবইয়ের তালিকা:\n{listing}"
         try:
             graded = self.llm.structured(RERANK_SYSTEM, user, _Scores, max_tokens=600)
@@ -111,10 +127,12 @@ class CrossEncoderReranker:
     name = "crossencoder"
 
     def __init__(self, model_name: str, *, device: str = "", batch_size: int = 16,
-                 max_length: int = 512):
+                 max_length: int = 512, settings: Settings = default_settings):
         self.model_name = model_name
         self.batch_size = batch_size
         self.max_length = max_length
+        # Only for the flap budget in `_passage`; the model itself is configured above.
+        self.settings = settings
         self.model = self._load(device)
 
     def _load(self, device: str):
@@ -148,7 +166,7 @@ class CrossEncoderReranker:
     def score(self, query: str, records: list[IndexedBook]) -> list[float]:
         if not records:
             return []
-        pairs = [(query, _passage(r)) for r in records]
+        pairs = [(query, _passage(r, self.settings)) for r in records]
         try:
             raw = self.model.predict(pairs, batch_size=self.batch_size,
                                      show_progress_bar=False)
@@ -199,23 +217,53 @@ def _log_pairs(logger: logging.Logger, model: str, query: str,
         logger.debug("  #%-2d in=%-2d score=%.4f  %s", rank, i + 1, scores[i], first_line)
 
 
-def _passage(record: IndexedBook) -> str:
-    """What the reranker reads. Author is included deliberately -- half the queries in
+def _blurb(record: IndexedBook) -> str:
+    """The book's own words about itself, preferred over anything a model wrote.
+
+    `Description (Flap)` is populated for every row of both source CSVs, and it is the
+    only field that says what a particular book actually contains. The LLM's one-sentence
+    `summary` used to win this choice, which meant that wherever enrichment had succeeded
+    the reranker never saw the flap at all -- it was grading a model's paraphrase of a
+    book against the query, with the catalogue text discarded.
+
+    The summary survives only as a fallback, for the ~23% of rows whose flap was pure
+    storefront advertising and was emptied by `ingest.clean.strip_boilerplate`. For those
+    books it is the only description there is.
+    """
+    return record.book.description.strip() or record.enrichment.summary.strip()
+
+
+def _passage(record: IndexedBook, settings: Settings = default_settings) -> str:
+    """What the reranker reads, flap first.
+
+    Field order is the whole point of this function, because the cross-encoder truncates
+    at `reranker_max_length` and the LM Studio backend at `lmstudio_rerank_max_chars`:
+    whatever sits at the bottom is what gets cut. So the catalogue's own text goes at the
+    top and the inferred tags go underneath, where a tight budget costs a genre label
+    rather than the paragraph that says what the book is about.
+
+    Author is included deliberately, immediately after the title -- half the queries in
     this catalogue name a person, and a reranker that cannot see the author cannot tell
-    that book apart from any other book on the same subject."""
+    that book apart from any other book on the same subject.
+    """
     book, enrichment = record.book, record.enrichment
     parts = [f"শিরোনাম: {book.title}", f"লেখক: {book.author}"]
+    if book.publish_year:
+        parts.append(f"প্রকাশকাল: {book.publish_year}")
+
+    blurb = _blurb(record)
+    if blurb:
+        parts.append("বিবরণ (ফ্ল্যাপ): " + blurb[: settings.rerank_flap_chars])
+
+    # Inferred by a model, not read from the catalogue: useful for breaking ties between
+    # two books whose flaps are equally close to the query, and the first thing that
+    # should go when the passage has to be shortened.
     if enrichment.subjects:
         parts.append("বিষয়: " + ", ".join(enrichment.subjects[:5]))
     if enrichment.genres:
         parts.append("ধরন: " + ", ".join(enrichment.genres[:3]))
-    if book.publish_year:
-        parts.append(f"প্রকাশকাল: {book.publish_year}")
     if enrichment.author_roles:
         parts.append("লেখকের ভূমিকা: " + ", ".join(enrichment.author_roles[:3]))
-    blurb = (enrichment.summary or book.description).strip()
-    if blurb:
-        parts.append("বিবরণ: " + blurb[:400])
     return "\n".join(parts)
 
 
@@ -226,29 +274,35 @@ def make_reranker(settings: Settings = default_settings,
     if backend == "none":
         return NoOpReranker()
     if backend == "llm":
-        return LLMReranker(llm) if llm is not None else NoOpReranker()
+        return LLMReranker(llm, settings=settings) if llm is not None else NoOpReranker()
     try:
         return CrossEncoderReranker(
             settings.reranker_model,
             device=settings.reranker_device,
             batch_size=settings.reranker_batch_size,
             max_length=settings.reranker_max_length,
+            settings=settings,
         )
     except Exception as exc:  # noqa: BLE001
         log.warning("cross-encoder unavailable (%s) -- falling back to fusion order", exc)
         return NoOpReranker()
 
 
-def _describe(index: int, record: IndexedBook) -> str:
+def _describe(index: int, record: IndexedBook, settings: Settings = default_settings) -> str:
+    """One book in the listwise grader's prompt. Same flap-first rule as `_passage`.
+
+    The budget is a fraction of `_passage`'s because this backend puts `batch_size` books
+    in one prompt, so the flap allowance is shared eight ways.
+    """
     book, enrichment = record.book, record.enrichment
     facets = ", ".join(enrichment.subjects[:4] + enrichment.genres[:2]) or "-"
-    blurb = (enrichment.summary or book.description)[:220]
+    blurb = _blurb(record)[: max(1, settings.rerank_flap_chars // 3)] or "-"
     return (
         f"id: {index}\n"
         f"শিরোনাম: {book.title}\n"
         f"লেখক: {book.author}\n"
-        f"বিষয়: {facets}\n"
-        f"বিবরণ: {blurb}"
+        f"বিবরণ (ফ্ল্যাপ): {blurb}\n"
+        f"বিষয়: {facets}"
     )
 
 

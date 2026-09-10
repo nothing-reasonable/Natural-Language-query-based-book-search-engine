@@ -17,21 +17,36 @@ class TextField:
     embed_chars: int = 1200  # truncation budget inside the embedding text
 
 
-# Order matters only for readability of the generated embedding text.
+# Order is not cosmetic: it is the order of the embedding text, and `embedding_max_tokens`
+# truncates the tail. The three fields that come from the catalogue itself and identify a
+# particular book -- title, author, flap -- go first, so they are inside the budget on
+# every book; the model-inferred facets follow and are what a tight budget costs.
+#
+# The flap used to sit eleventh, behind ten inferred fields, which is how the one field
+# populated for 100% of both source CSVs ended up as the least likely to be embedded.
+#
+# `lexical_weight` follows the same principle: no inferred field may outweigh the book's
+# own text. A `subjects` tag at weight 3 beating the flap at weight 1 meant BM25 scored a
+# model's guess about a book above what the book says about itself.
 TEXT_FIELDS: list[TextField] = [
-    TextField("title", "শিরোনাম", lexical_weight=4, embed=True, embed_chars=300),
+    TextField("title", "শিরোনাম", lexical_weight=5, embed=True, embed_chars=300),
     TextField("author", "লেখক", lexical_weight=3, embed=True, embed_chars=200),
-    TextField("subjects", "বিষয়", lexical_weight=3, embed=True, embed_chars=300),
-    TextField("topics", "প্রসঙ্গ", lexical_weight=2, embed=True, embed_chars=300),
-    TextField("genres", "ধরন", lexical_weight=2, embed=True, embed_chars=200),
-    TextField("periods", "কাল", lexical_weight=2, embed=True, embed_chars=200),
-    TextField("events", "ঘটনা", lexical_weight=2, embed=True, embed_chars=200),
+    TextField("description", "ফ্ল্যাপ", lexical_weight=3, embed=True, embed_chars=1200),
+    TextField("subjects", "বিষয়", lexical_weight=2, embed=True, embed_chars=300),
+    TextField("topics", "প্রসঙ্গ", lexical_weight=1, embed=True, embed_chars=300),
+    TextField("genres", "ধরন", lexical_weight=1, embed=True, embed_chars=200),
+    TextField("periods", "কাল", lexical_weight=1, embed=True, embed_chars=200),
+    TextField("events", "ঘটনা", lexical_weight=1, embed=True, embed_chars=200),
     TextField("places", "স্থান", lexical_weight=1, embed=True, embed_chars=200),
     TextField("persons", "ব্যক্তি", lexical_weight=1, embed=True, embed_chars=200),
-    TextField("author_roles", "লেখকের ভূমিকা", lexical_weight=2, embed=True, embed_chars=200),
+    TextField("author_roles", "লেখকের ভূমিকা", lexical_weight=1, embed=True, embed_chars=200),
     TextField("publisher", "প্রকাশক", lexical_weight=1, embed=False),
-    TextField("description", "ফ্ল্যাপ", lexical_weight=1, embed=True, embed_chars=1200),
-    TextField("author_bio", "লেখক পরিচিতি", lexical_weight=1, embed=True, embed_chars=600),
+    # About the *author*, not the book, and byte-identical across every book that author
+    # wrote. Embedded, it pulled a whole bibliography onto one point in the vector space;
+    # in BM25 it made all of an author's books match a query about their biography. Left
+    # out of both. `derive.py` still reads `book.author_bio` directly to spot author
+    # roles, so multi-hop author queries are unaffected.
+    TextField("author_bio", "লেখক পরিচিতি", lexical_weight=0, embed=False),
     TextField("table_of_contents", "সূচিপত্র", lexical_weight=1, embed=True, embed_chars=800),
 ]
 

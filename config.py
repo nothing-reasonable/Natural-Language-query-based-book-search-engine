@@ -71,7 +71,9 @@ class Settings(BaseSettings):
     # turn it off, and delete artifacts/query_traces/ freely.
     trace_queries: bool = True
     # Characters of each reranker passage written to the trace. 0 means no limit.
-    trace_passage_chars: int = 600
+    # Has to clear `rerank_flap_chars` plus the title/author/year lines, or the trace cuts
+    # off exactly the flap text it is being read to check.
+    trace_passage_chars: int = 1200
 
     # ---------------------------------------------------------------- Ingestion
     # Fuzzy author merging is deliberately conservative: Bengali names differ by a single
@@ -148,7 +150,19 @@ class Settings(BaseSettings):
     reranker_model: str = "BAAI/bge-reranker-v2-m3"
     reranker_device: str = ""  # "" => cuda when it fits, else cpu
     reranker_batch_size: int = 16
-    reranker_max_length: int = 512
+    # bge-reranker-v2-m3 accepts 8192 tokens; 512 was leaving the flap on the floor.
+    # Measured over both CSVs: the median flap is 702 characters and the 90th percentile
+    # 1,707, so a 512-token pair could not hold the one field that says what the book is
+    # actually about -- and the flap was the last line of the passage, so it was the
+    # first thing truncated. See `rerank._passage`.
+    reranker_max_length: int = 1024
+
+    # Characters of flap text handed to the reranker per candidate. This is the dial to
+    # turn down if the `--top-k 100` batch runs get too slow: at 900 characters roughly
+    # 60% of the catalogue's flaps arrive complete, against 34% at the previous 400.
+    # Cross-encoder cost scales with sequence length -- about 4 s for 16 candidates on
+    # CPU here, against 2 s before.
+    rerank_flap_chars: int = 900
 
     # "lmstudio" (see rerank2.py) is the cross-encoder's stand-in when torch, a model
     # download or spare VRAM are not available: it judges one (query, book) pair per call
@@ -165,7 +179,9 @@ class Settings(BaseSettings):
     # Softmax temperature on the Yes/No log-odds. Raw P(Yes) saturates at 1.0 and 0.0;
     # ~4 keeps the shortlist spread across a usable range. Lower = sharper ordering.
     lmstudio_rerank_temperature: float = 4.0
-    lmstudio_rerank_max_chars: int = 700  # book text sent per judgement
+    # Book text sent per judgement. Has to leave room for `rerank_flap_chars` plus the
+    # title, author and year lines around it, or this cap undoes the flap budget.
+    lmstudio_rerank_max_chars: int = 1400
     # Consecutive failed judgement calls before the backend gives up for the session.
     # One 400 or one model reload should cost a candidate, not the whole stage.
     lmstudio_rerank_failure_limit: int = 4

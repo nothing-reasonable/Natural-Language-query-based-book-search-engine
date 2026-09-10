@@ -576,7 +576,10 @@ function cardBody(hit) {
   top.appendChild(head);
   frag.appendChild(top);
 
-  const text = hit.summary || hit.description;
+  // The flap first. `summary` is one sentence an LLM wrote about the book; the flap is
+  // what the publisher printed on it. The summary is the fallback only for the books
+  // whose flap was pure storefront advertising and was stripped during ingestion.
+  const text = hit.description || hit.summary;
   if (text) {
     const p = el("p", "snippet clamp", text.trim());
     p.title = "সম্পূর্ণ দেখতে ক্লিক করুন";
