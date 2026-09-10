@@ -96,11 +96,13 @@ Evaluation Rules:
   - Geographic/Historical scope matters: If a specific location or event is queried (e.g., 'খুলনা বিভাগে মুক্তিযুদ্ধ', 'নীল চাষিদের বিদ্রোহ', 'জুলাইয়ের আন্দোলন'), books about other regions or different historical events score 0.
 
 Output Requirement:
-You MUST return ONLY a valid JSON array of objects. Do NOT include markdown text outside the JSON array.
-Each object in the array must have the following keys:
-  "rank": integer rank of the book
-  "score": integer between 0 and 3
-  "reason": brief 1-sentence justification
+You MUST return ONLY valid JSON (either a JSON array or a JSON object with a "results" key).
+Do NOT include conversational greetings, conclusions, or remarks.
+Format example:
+[
+  {"rank": 1, "score": 3, "reason": "Direct focus on freedom fighters"},
+  {"rank": 2, "score": 0, "reason": "Not related"}
+]
 """
 
 
@@ -266,6 +268,7 @@ class LMStudioScorer:
                 {"role": "user", "content": user_content},
             ],
             "temperature": 0.1,
+            "max_tokens": 2048,
         }
 
         last_error = None
@@ -276,9 +279,9 @@ class LMStudioScorer:
                 response_json = resp.json()
                 content = response_json["choices"][0]["message"]["content"]
                 parsed = self._extract_json_array(content)
-                if parsed is not None:
+                if parsed is not None and len(parsed) > 0:
                     return parsed
-                last_error = f"Model output could not be parsed as JSON: {content[:150]}"
+                last_error = f"Model output could not be parsed as JSON: {repr(content[:250])}"
             except Exception as e:
                 last_error = str(e)
                 time.sleep(1.0 + attempt)
@@ -289,33 +292,84 @@ class LMStudioScorer:
 
     @staticmethod
     def _extract_json_array(text: str) -> list[dict[str, Any]] | None:
-        """Extracts JSON array from raw model response text."""
-        text = text.strip()
-        # Remove potential markdown code blocks
-        if text.startswith("```"):
-            lines = text.splitlines()
-            if lines[0].startswith("```"):
-                lines = lines[1:]
-            if lines and lines[-1].strip().startswith("```"):
-                lines = lines[:-1]
-            text = "\n".join(lines).strip()
+        """Robustly extracts JSON array or list of evaluations from raw model response text.
+        Handles thinking tags (<think>...</think>), markdown code fences, wrapper keys,
+        trailing commas, dictionary outputs, and regex fallbacks.
+        """
+        if not text or not text.strip():
+            return None
 
-        try:
-            val = json.loads(text)
-            if isinstance(val, list):
-                return val
-        except Exception:
-            pass
+        # 1. Strip reasoning / thinking tags from thinking models (e.g. DeepSeek-R1)
+        cleaned = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL | re.IGNORECASE)
+        cleaned = re.sub(r"<thought>.*?</thought>", "", cleaned, flags=re.DOTALL | re.IGNORECASE)
+        cleaned = cleaned.strip()
 
-        # Try regex search for [ ... ]
-        match = JSON_BLOCK_PATTERN.search(text)
-        if match:
-            try:
-                val = json.loads(match.group(0))
-                if isinstance(val, list):
-                    return val
-            except Exception:
-                pass
+        # 2. Collect candidate JSON substrings
+        candidates = []
+
+        # Check for markdown code fences (```json ... ``` or ``` ... ```)
+        fences = re.findall(r"```(?:json)?\s*(.*?)\s*```", cleaned, flags=re.DOTALL | re.IGNORECASE)
+        for f in fences:
+            candidates.append(f.strip())
+
+        candidates.append(cleaned)
+
+        # Search for outer bracketed blocks
+        for c in list(candidates):
+            array_match = re.search(r"\[.*\]", c, flags=re.DOTALL)
+            if array_match:
+                candidates.append(array_match.group(0).strip())
+            obj_match = re.search(r"\{.*\}", c, flags=re.DOTALL)
+            if obj_match:
+                candidates.append(obj_match.group(0).strip())
+
+        # 3. Try parsing each candidate
+        for cand in candidates:
+            # Strip trailing commas that invalidate standard json.loads
+            cand_no_trailing = re.sub(r",\s*([\]}])", r"\1", cand)
+            for raw in (cand, cand_no_trailing):
+                try:
+                    val = json.loads(raw)
+                    if isinstance(val, list):
+                        return val
+                    if isinstance(val, dict):
+                        # Check wrapper keys like {"results": [...]}, {"books": [...]}, etc.
+                        for k in ("results", "books", "evaluations", "scores", "items", "data", "judgments"):
+                            if k in val and isinstance(val[k], list):
+                                return val[k]
+                        # Check rank-keyed dict: {"1": 3, "2": 2} or {"1": {"score": 3, ...}}
+                        out = []
+                        for k, v in val.items():
+                            clean_k = "".join(ch for ch in str(k) if ch.isdigit())
+                            if clean_k:
+                                if isinstance(v, dict):
+                                    out.append({
+                                        "rank": int(clean_k),
+                                        "score": v.get("score", 0),
+                                        "reason": v.get("reason", ""),
+                                    })
+                                elif isinstance(v, (int, float, str)):
+                                    clean_v = "".join(ch for ch in str(v) if ch.isdigit())
+                                    out.append({
+                                        "rank": int(clean_k),
+                                        "score": int(clean_v) if clean_v else 0,
+                                        "reason": "",
+                                    })
+                        if out:
+                            return out
+                except Exception:
+                    continue
+
+        # 4. Regex fallback: extract individual rank and score pairs
+        pattern1 = re.compile(r'\"?rank\"?\s*:\s*(\d+).*?\"?score\"?\s*:\s*([0-3])', re.DOTALL | re.IGNORECASE)
+        matches1 = list(pattern1.finditer(cleaned))
+        if matches1:
+            return [{"rank": int(m.group(1)), "score": int(m.group(2)), "reason": "regex extracted"} for m in matches1]
+
+        pattern2 = re.compile(r"(?:rank|#)\s*(\d+)[:\s\-]+(?:score[:\s=]*)?([0-3])", re.IGNORECASE)
+        matches2 = list(pattern2.finditer(cleaned))
+        if matches2:
+            return [{"rank": int(m.group(1)), "score": int(m.group(2)), "reason": "regex extracted"} for m in matches2]
 
         return None
 
