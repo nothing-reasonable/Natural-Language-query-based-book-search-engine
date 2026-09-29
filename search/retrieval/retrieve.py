@@ -16,6 +16,7 @@ from search.indexing.kg_index import KnowledgeGraph
 from search.indexing.bm25_index import LexicalIndex
 from search.indexing.dense_index import VectorIndex
 from search.indexing.facet_index import FacetIndex
+from search.indexing.title_index import ExactTitleIndex
 from search.core.schemas import Candidate, Evidence, QueryPlan
 from search.query.query_understanding import QueryUnderstanding
 
@@ -26,7 +27,8 @@ class Retriever:
     def __init__(self, lexical: LexicalIndex, vector: VectorIndex | None,
                  graph: KnowledgeGraph, embedder: Embedder | None,
                  understanding: QueryUnderstanding, settings: Settings = default_settings,
-                 facets: FacetIndex | None = None):
+                 facets: FacetIndex | None = None,
+                 titles: ExactTitleIndex | None = None):
         self.lexical = lexical
         self.vector = vector
         self.graph = graph
@@ -34,6 +36,7 @@ class Retriever:
         self.understanding = understanding
         self.settings = settings
         self.facets = facets
+        self.titles = titles
         # One pool for the life of the engine. Building a fresh one per query costs more
         # than the channels now take to run.
         self._pool = ThreadPoolExecutor(max_workers=4, thread_name_prefix="retrieve")
@@ -41,7 +44,7 @@ class Retriever:
     def retrieve(self, plan: QueryPlan) -> dict[str, list[Candidate]]:
         """Run every enabled channel in parallel. A channel that raises is dropped, not
         propagated: a dead index should cost recall, not the whole search."""
-        available = {"lexical": self._lexical, "dense": self._dense,
+        available = {"title": self._title, "lexical": self._lexical, "dense": self._dense,
                      "graph": self._graph, "facet": self._facet}
         channels = {n: fn for n, fn in available.items() if n in self.settings.enabled_channels}
 
@@ -61,6 +64,24 @@ class Retriever:
         self._pool.shutdown(wait=False)
 
     # ------------------------------------------------------------------ channels
+    def _allowed(self, plan: QueryPlan) -> set[str] | None:
+        return self.facets.select(plan.filters) if self.facets is not None else None
+
+    def _title(self, plan: QueryPlan) -> list[Candidate]:
+        if self.titles is None:
+            return []
+        allowed = self._allowed(plan)
+        ids = self.titles.find(plan.raw_query or plan.normalized_query)
+        if allowed is not None:
+            ids = [book_id for book_id in ids if book_id in allowed]
+        return [
+            Candidate(
+                book_id=book_id, channel="title", rank=rank, score=1.0,
+                evidence=[Evidence(channel="title", detail="শিরোনাম হুবহু মিলেছে")],
+            )
+            for rank, book_id in enumerate(ids, start=1)
+        ]
+
     def _entity_evidence(self, plan: QueryPlan) -> list[Evidence]:
         """Why a hard-filtered result set is what it is."""
         out = []
@@ -84,9 +105,7 @@ class Retriever:
             return []
         ranked = self.facets.rank(selected, plan.concepts, self.settings.channel_top_k)
 
-        described = ", ".join(
-            e.name for e in plan.entities if e.hard
-        ) or _describe_filters(plan.filters)
+        described = _describe_filters(plan.filters)
         return [
             Candidate(
                 book_id=book_id, channel="facet", rank=rank, score=score,
@@ -99,7 +118,9 @@ class Retriever:
 
     def _lexical(self, plan: QueryPlan) -> list[Candidate]:
         terms = self.understanding.search_terms(plan)
-        hits = self.lexical.search(terms, k=self.settings.channel_top_k)
+        hits = self.lexical.search(
+            terms, k=self.settings.channel_top_k, allowed_ids=self._allowed(plan)
+        )
         # Matching happens on stems; explanations show the words the user actually typed.
         surface = bengali.surface_forms(terms)
 
@@ -119,16 +140,24 @@ class Retriever:
     def _dense(self, plan: QueryPlan) -> list[Candidate]:
         if self.vector is None or self.embedder is None:
             return []
-        query_text = " ".join([plan.normalized_query, *plan.expanded_terms[:8]])
+        # Semantic retrieval sees the user's original wording. Controlled aliases are a
+        # lexical aid; appending them here moves the query to a different semantic point.
+        query_text = plan.raw_query or plan.normalized_query
         vector = self.embedder.embed_query(query_text)
         hits = self.vector.search(vector, k=self.settings.channel_top_k, filters=plan.filters)
-        return [
-            Candidate(
+        candidates = []
+        for rank, hit in enumerate(hits, start=1):
+            # Compatibility with old/in-memory vector stubs used by diagnostics.
+            book_id, score, snippet = hit[:3]
+            source = hit[3] if len(hit) > 3 else ""
+            candidates.append(Candidate(
                 book_id=book_id, channel="dense", rank=rank, score=score,
-                evidence=[Evidence(channel="dense", detail=f"অর্থগত মিল ({score:.2f})")],
-            )
-            for rank, (book_id, score, _snippet) in enumerate(hits, start=1)
-        ]
+                evidence=[Evidence(
+                    channel="dense", detail="বিবরণের সঙ্গে অর্থগত মিল",
+                    excerpt=snippet, source_field=source,
+                )],
+            ))
+        return candidates
 
     def _graph(self, plan: QueryPlan) -> list[Candidate]:
         term_kinds = _term_kinds(plan)
@@ -156,7 +185,9 @@ class Retriever:
                 + 2.0 * sum(self._idf(t, term_kinds) for t in evidence["author_terms"])
             )
 
-        scored = [(book_id, ev, specificity(ev)) for book_id, ev in found.items()]
+        allowed = self._allowed(plan)
+        scored = [(book_id, ev, specificity(ev)) for book_id, ev in found.items()
+                  if allowed is None or book_id in allowed]
         # A broad concept ties thousands of books at one identical score -- "ইতিহাস" is a
         # genre on 1,897 of them. Truncating that tie to `channel_top_k` by book_id is a
         # lottery: the hash is unrelated to relevance, so a well-tagged book loses its

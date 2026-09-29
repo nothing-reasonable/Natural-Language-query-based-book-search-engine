@@ -1,7 +1,5 @@
-*.md
 artifacts/
 outputs/
-eval/
 # data/
 __pycache__/
 *.pyc
@@ -10,7 +8,6 @@ __pycache__/
 venv/
 .env
 .env.bak
-.env.example
 *.log
 *.py.bak
 *.zip

@@ -50,12 +50,13 @@ class HuggingFaceEmbedder:
     """
 
     def __init__(self, model_name: str, *, device: str = "", batch_size: int = 8,
-                 max_tokens: int = 512, query_prompt: str = "", document_prompt: str = ""):
+                 max_tokens: int = 512, query_prompt: str = "", document_prompt: str = "",
+                 revision: str = ""):
         from sentence_transformers import SentenceTransformer  # imported late: heavy
 
         self.name = model_name
         self.batch_size = batch_size
-        self.model = self._load(SentenceTransformer, model_name, device)
+        self.model = self._load(SentenceTransformer, model_name, device, revision)
         if max_tokens:
             # Context windows of 32k are useless on CPU; book metadata fits in far less.
             self.model.max_seq_length = min(max_tokens, self.model.max_seq_length)
@@ -63,7 +64,7 @@ class HuggingFaceEmbedder:
         self.document_prompt = self._resolve(document_prompt)
 
     @staticmethod
-    def _load(SentenceTransformer, model_name: str, device: str):
+    def _load(SentenceTransformer, model_name: str, device: str, revision: str = ""):
         """Prefer the requested device, but never let a full GPU disable semantic search.
 
         This laptop shares 6 GB between LM Studio and everything here, so CUDA OOM is a
@@ -77,7 +78,9 @@ class HuggingFaceEmbedder:
         last: Exception | None = None
         for candidate in attempts:
             try:
-                return SentenceTransformer(model_name, device=candidate or None)
+                return SentenceTransformer(
+                    model_name, device=candidate or None, revision=revision or None
+                )
             except Exception as exc:  # noqa: BLE001
                 log.warning("embedder could not load on %s: %s", candidate, exc)
                 last = exc
@@ -164,4 +167,5 @@ def make_embedder(settings: Settings = default_settings, llm: LMStudio | None = 
         max_tokens=settings.embedding_max_tokens,
         query_prompt=settings.embedding_query_prompt,
         document_prompt=settings.embedding_document_prompt,
+        revision=settings.embedding_model_revision,
     )

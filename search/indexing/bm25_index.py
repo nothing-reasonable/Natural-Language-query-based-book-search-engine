@@ -55,7 +55,8 @@ class LexicalIndex:
         return cls(retriever, book_ids, doc_terms)
 
     # ------------------------------------------------------------------ query
-    def search(self, terms: list[str], k: int = 50) -> list[tuple[str, float, list[str]]]:
+    def search(self, terms: list[str], k: int = 50,
+               allowed_ids: set[str] | None = None) -> list[tuple[str, float, list[str]]]:
         """`terms` are raw surface strings (query words plus taxonomy expansions).
 
         Returns (book_id, score, matched_terms).
@@ -63,15 +64,23 @@ class LexicalIndex:
         tokens = _dedup([t for term in terms for t in bengali.analyze(term)])
         if not tokens:
             return []
-        k = min(k, len(self.book_ids))
-        indices, scores = self.retriever.retrieve([tokens], k=k, show_progress=False)
+        # When constrained, rank the complete lexical corpus and apply membership before
+        # taking k. Filtering an already-truncated top-k silently loses valid books.
+        retrieve_k = len(self.book_ids) if allowed_ids is not None else min(k, len(self.book_ids))
+        if retrieve_k <= 0:
+            return []
+        indices, scores = self.retriever.retrieve([tokens], k=retrieve_k, show_progress=False)
         results = []
         for i, score in zip(indices[0], scores[0], strict=True):
             if score <= 0:
                 continue
             i = int(i)
+            if allowed_ids is not None and self.book_ids[i] not in allowed_ids:
+                continue
             matched = [t for t in tokens if t in self.doc_terms[i]]
             results.append((self.book_ids[i], float(score), matched))
+            if len(results) >= k:
+                break
         return results
 
 

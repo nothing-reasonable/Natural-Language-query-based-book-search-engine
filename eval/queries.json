@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "queries": [
+    {"id": "bn-author-subject", "category": "Bangla", "query": "হুমায়ূন আহমেদের মুক্তিযুদ্ধের বই"},
+    {"id": "bn-about-person", "category": "Bangla", "query": "বঙ্গবন্ধু সম্পর্কে লেখা বই"},
+    {"id": "en-subject", "category": "English", "query": "books about the liberation war"},
+    {"id": "exact-title", "category": "exact-title", "query": "একাত্তরের দিনগুলি"},
+    {"id": "filter-year", "category": "filtered", "query": "১৯৯০ থেকে ২০০০ সালে প্রকাশিত বই"},
+    {"id": "filter-author", "category": "filtered", "query": "মুক্তিযুদ্ধ", "filters": {"author": "হুমায়ূন আহমেদ"}},
+    {"id": "semantic-memory", "category": "semantic", "query": "যুদ্ধে পরিবারের অভিজ্ঞতার স্মৃতিকথা"}
+  ]
+}

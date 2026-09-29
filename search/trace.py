@@ -199,8 +199,8 @@ def _compose(tracer, *, plan, fusing, variants, channel_hits, pre_filter, fused,
         kv("expanded terms out", len(plan.expanded_terms)),
         *bullets(plan.expanded_terms),
         "",
-        "Used by: the lexical (BM25) query, and the dense query text, which is built from",
-        "the normalized query plus the first 8 expansion terms.",
+        "Used by: the lexical (BM25) query. Dense retrieval keeps the reader's original",
+        "wording so controlled aliases do not move it to a different semantic point.",
     ])
 
     # ---------------------------------------------------------------- 3. rag-fusion
@@ -242,8 +242,8 @@ def _compose(tracer, *, plan, fusing, variants, channel_hits, pre_filter, fused,
     # ---------------------------------------------------------------- 6. filters
     removed = {f.book_id for f in pre_filter} - {f.book_id for f in fused}
     tracer.section("HARD FILTERS", [
-        "Applied after fusion. This is where a correct book most often disappears: if it",
-        "is listed below, no later stage can bring it back.",
+        "Enforced inside every retrieval channel before its top-k, then checked again",
+        "after fusion. A non-zero removal count here indicates a defensive catch.",
         "",
         kv("filters", plan.filters.model_dump(exclude_defaults=True) or "(none)"),
         kv("candidates before", len(pre_filter)),
@@ -255,7 +255,9 @@ def _compose(tracer, *, plan, fusing, variants, channel_hits, pre_filter, fused,
 
     # ---------------------------------------------------------------- 7. rerank
     if rerank_trace is None or not rerank_trace.entries:
-        tracer.section("RERANKING", ["  no candidates reached stage 2"])
+        tracer.section("RERANKING", [
+            "  " + (getattr(rerank_trace, "fallback", "") or "no candidates reached stage 2")
+        ])
     else:
         warning = ([
             "*** The reranker is NOT running. `noop` returns fusion order as a linear",

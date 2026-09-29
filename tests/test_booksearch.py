@@ -305,7 +305,9 @@ def test_dense_channel_encodes_the_query_as_a_query():
 
     candidates = _retriever(embedder, vector)._dense(plan)
 
-    assert embedder.queries == ["মুক্তিযুদ্ধের বই একাত্তর"]
+    # Controlled aliases expand BM25 only; the semantic model must see the wording the
+    # reader actually supplied, per asymmetric retrieval guidance.
+    assert embedder.queries == ["মুক্তিযুদ্ধের বই"]
     assert embedder.documents == []
     assert [c.book_id for c in candidates] == ["b1"]
     assert candidates[0].channel == "dense"

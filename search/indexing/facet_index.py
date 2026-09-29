@@ -19,6 +19,7 @@ from __future__ import annotations
 from collections import defaultdict
 
 from search.core.schemas import Filters, IndexedBook
+from search.core import bengali
 
 
 class FacetIndex:
@@ -27,6 +28,7 @@ class FacetIndex:
         self.by_author: dict[str, set[str]] = defaultdict(set)
         self.by_author_name: dict[str, set[str]] = defaultdict(set)
         self.by_publisher: dict[str, set[str]] = defaultdict(set)
+        self.publisher_display: dict[str, str] = {}
         self.by_year: dict[int, set[str]] = defaultdict(set)
         self.by_language: dict[str, set[str]] = defaultdict(set)
         self.by_facet: dict[str, dict[str, set[str]]] = {
@@ -39,9 +41,11 @@ class FacetIndex:
             if book.author_id:
                 self.by_author[book.author_id].add(book_id)
             if book.author:
-                self.by_author_name[book.author].add(book_id)
+                self.by_author_name[bengali.key(book.author)].add(book_id)
             if book.publisher:
-                self.by_publisher[book.publisher].add(book_id)
+                publisher_key = bengali.key(book.publisher)
+                self.by_publisher[publisher_key].add(book_id)
+                self.publisher_display.setdefault(publisher_key, book.publisher)
             if book.publish_year:
                 self.by_year[book.publish_year].add(book_id)
             if book.language:
@@ -64,9 +68,9 @@ class FacetIndex:
         if filters.author_ids:
             groups.append(self._union(self.by_author, filters.author_ids))
         elif filters.authors:
-            groups.append(self._union(self.by_author_name, filters.authors))
+            groups.append(self._union(self.by_author_name, [bengali.key(v) for v in filters.authors]))
         if filters.publishers:
-            groups.append(self._union(self.by_publisher, filters.publishers))
+            groups.append(self._union(self.by_publisher, [bengali.key(v) for v in filters.publishers]))
         if filters.language:
             groups.append(self._union(self.by_language, [filters.language]))
         for name, table in self.by_facet.items():
@@ -95,6 +99,12 @@ class FacetIndex:
         for key in keys:
             out |= table.get(key, set())
         return out
+
+    def resolve_publishers(self, names: list[str]) -> list[str]:
+        """Canonical display values for vector and in-memory filters alike."""
+        return list(dict.fromkeys(
+            self.publisher_display.get(bengali.key(name), name) for name in names
+        ))
 
     # ------------------------------------------------------------------ ranking
     def rank(self, book_ids: set[str], concepts, limit: int) -> list[tuple[str, float]]:

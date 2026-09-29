@@ -45,6 +45,7 @@ class Settings(BaseSettings):
     #   microsoft/harrier-oss-v1-0.6b  1024-dim,  MTEB v2 69.0  <- better, ~3x slower
     #   microsoft/harrier-oss-v1-27b   5376-dim,  MTEB v2 74.3  <- needs a serious GPU
     embedding_model: str = "microsoft/harrier-oss-v1-270m"
+    embedding_model_revision: str = ""  # pin a Hub commit/tag for reproducible indexes
     embedding_device: str = ""  # "" => auto ("cuda" when available, else "cpu")
     embedding_batch_size: int = 8
     # These models advertise a 32k context. Book metadata needs a fraction of that, and
@@ -84,7 +85,9 @@ class Settings(BaseSettings):
 
     # ---------------------------------------------------------------- Retrieval
     channel_top_k: int = 60  # candidates pulled from each retrieval channel
-    rerank_top_k: int = 16  # candidates handed to the (expensive) reranker
+    # The shortlist is deliberately independent of the number rendered on one page.
+    # A web search ranks this many books once and paginates the stable result set.
+    rerank_top_k: int = 48  # candidates handed to the (expensive) reranker
     final_top_k: int = 10
     rrf_k: int = 60  # reciprocal-rank-fusion damping constant
     # Expansion terms added per query keyword. The taxonomy holds up to eleven aliases
@@ -102,7 +105,9 @@ class Settings(BaseSettings):
     channel_weights: dict[str, float] = Field(
         # `facet` is weighted highest: it is the only channel whose hits are *known* to
         # satisfy what the user explicitly asked for, rather than inferred to be similar.
-        default_factory=lambda: {"lexical": 1.0, "dense": 1.2, "graph": 1.0, "facet": 1.5}
+        default_factory=lambda: {
+            "title": 3.0, "lexical": 1.0, "dense": 1.2, "graph": 1.0, "facet": 1.5
+        }
     )
 
     # Blend of the final ranking score (see search/rerank.py). Should sum to ~1.
@@ -123,9 +128,9 @@ class Settings(BaseSettings):
     session_weight: float = 0.7  # session intent outranks long-term taste
 
     # Which retrieval channels run at all. Ablation studies flip these off one at a
-    # time; production keeps all three.
+    # time; production keeps exact title, lexical, dense, graph, and metadata facets.
     enabled_channels: list[str] = Field(
-        default_factory=lambda: ["lexical", "dense", "graph", "facet"]
+        default_factory=lambda: ["title", "lexical", "dense", "graph", "facet"]
     )
 
     # ---------------------------------------------------------------- RAG-Fusion
@@ -188,6 +193,23 @@ class Settings(BaseSettings):
 
     use_reranker: bool = True  # master switch for stage 2, whichever backend is chosen
 
+    # ---------------------------------------------------------------- Reader web app
+    web_page_size: int = 12
+    web_ranked_results: int = 48
+    web_cache_ttl_s: int = 600
+    web_cache_entries: int = 128
+    # GPU-backed searches are serialised. Requests wait briefly, then get a retryable
+    # busy response instead of accumulating an unbounded queue.
+    web_search_wait_s: float = 2.0
+    # Filesystem paths, model controls, traces and profile identifiers are research
+    # diagnostics. They are never exposed by the public app unless this is explicit.
+    web_diagnostics: bool = False
+
+    # ---------------------------------------------------------------- Index contract
+    index_schema_version: int = 2
+    passage_tokens: int = 256
+    passage_overlap: int = 48
+
     # How much the chat model is involved in reading the query:
     #
     #   "never"  -- rules only. The default, on evidence rather than taste: since the
@@ -226,6 +248,10 @@ class Settings(BaseSettings):
     @property
     def graph_path(self) -> Path:
         return self.artifacts_dir / "graph.json"
+
+    @property
+    def index_manifest_path(self) -> Path:
+        return self.artifacts_dir / "index_manifest.json"
 
     @property
     def trace_dir(self) -> Path:

@@ -102,6 +102,26 @@ class EntityIndex:
                 taken.update(match.span)
         return chosen
 
+    def resolve_authors(self, names: list[str]) -> tuple[list[str], list[str]]:
+        """Resolve explicit filter labels with the same identity rules as query names.
+
+        Unknown values remain as names and consequently match nothing; an explicit
+        filter is never silently relaxed.
+        """
+        canonical: list[str] = []
+        ids: list[str] = []
+        for name in names:
+            key = author_key(name)
+            value = self.author_by_key.get(key)
+            if value is None:
+                canonical.append(name)
+                continue
+            author_id, display = value
+            canonical.append(display)
+            if author_id:
+                ids.append(author_id)
+        return list(dict.fromkeys(canonical)), list(dict.fromkeys(ids))
+
     # ------------------------------------------------------------------ internals
     def _scan(self, tokens: list[str], kind: str) -> list[EntityMatch]:
         table = self.author_by_key if kind == "author" else self.publisher_by_key

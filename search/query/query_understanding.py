@@ -35,9 +35,16 @@ _TYPO_THRESHOLD = 88
 _PUBLICATION_HINTS = (
     "প্রকাশিত", "প্রকাশকাল", "প্রকাশনার", "ছাপা", "সালে প্রকাশ", "প্রকাশের",
     "লেখা", "রচিত", "লিখিত", "লেখেন",
-    "published", "written",
+    "published", "publication", "printed", "released", "written", "authored",
 )
-_RANGE_HINTS = ("থেকে", "পর্যন্ত", "মধ্যে", "সাল থেকে")
+_STRONG_PUBLICATION_HINTS = (
+    "প্রকাশিত", "প্রকাশকাল", "প্রকাশনার", "ছাপা", "সালে প্রকাশ", "প্রকাশের",
+    "published", "publication", "printed", "released",
+)
+_SUBJECT_DATE_HINTS = ("about", "on the", "নিয়ে", "বিষয়ে", "সম্পর্কে")
+_RANGE_HINTS = ("থেকে", "পর্যন্ত", "মধ্যে", "সাল থেকে", "between", "from", " to ")
+_AFTER_HINTS = ("after", "since", "সালের পর", "এর পর প্রকাশিত")
+_BEFORE_HINTS = ("before", "until", "সালের আগে", "পর্যন্ত প্রকাশিত")
 
 # Named spans of time, as inclusive publication-year ranges.
 #
@@ -66,6 +73,22 @@ _TIME_EXPRESSIONS: tuple[tuple[str, int, int], ...] = (
     ("সত্তরের দশক", 1970, 1979),
     ("আশির দশক", 1980, 1989),
     ("নব্বইয়ের দশক", 1990, 1999),
+    ("17th century", 1601, 1700),
+    ("18th century", 1701, 1800),
+    ("19th century", 1801, 1900),
+    ("20th century", 1901, 2000),
+    ("21st century", 2001, 2100),
+    ("1930s", 1930, 1939),
+    ("1940s", 1940, 1949),
+    ("1950s", 1950, 1959),
+    ("1960s", 1960, 1969),
+    ("1970s", 1970, 1979),
+    ("1980s", 1980, 1989),
+    ("1990s", 1990, 1999),
+)
+
+_ABOUT_PERSON_HINTS = (
+    "সম্পর্কে", "জীবনী", "জীবন নিয়ে", "কে নিয়ে", "বিষয়ে", "about", "biography of",
 )
 
 SYSTEM_PROMPT = """তুমি একটি বাংলা বই-অনুসন্ধান ইঞ্জিনের কোয়েরি বিশ্লেষক।
@@ -116,6 +139,10 @@ class QueryUnderstanding:
         self.llm = llm
         self.taxonomy = taxonomy or get_taxonomy()
         self.vocabulary = vocabulary or set()
+        self._vocabulary_by_script = {
+            kind: sorted(token for token in self.vocabulary if _script(token) == kind)
+            for kind in ("bn", "latin", "other")
+        }
         # No client means no model, whatever the configuration asked for.
         self.mode = mode if llm is not None else "never"
         self.entities = entities
@@ -124,9 +151,10 @@ class QueryUnderstanding:
         self.year_bounds = year_bounds
 
     # ------------------------------------------------------------------ public
-    def analyze(self, query: str, *, personalized: bool = False) -> QueryPlan:
+    def analyze(self, query: str, *, personalized: bool = False,
+                mode: str | None = None) -> QueryPlan:
         plan = self._rule_based(query)
-        if self._should_call_llm(plan):
+        if self._should_call_llm(plan, mode=mode):
             try:
                 draft = self.llm.structured(self._system(), query, QueryPlanDraft, max_tokens=700)
                 plan = self._merge(plan, draft)
@@ -140,14 +168,17 @@ class QueryUnderstanding:
             plan.intent = "personalized"
         return plan
 
-    def _should_call_llm(self, plan: QueryPlan) -> bool:
+    def _should_call_llm(self, plan: QueryPlan, *, mode: str | None = None) -> bool:
         """Whether to spend ~25 s asking the model to read a query the rules already read.
 
         "always" skips the gate entirely -- that is the point of it.
         """
-        if self.mode == "never":
+        effective = mode or self.mode
+        if self.llm is None:
+            effective = "never"
+        if effective == "never":
             return False
-        if self.mode == "always":
+        if effective == "always":
             return True
         return self._needs_llm(plan)
 
@@ -196,6 +227,13 @@ class QueryUnderstanding:
                 concepts.periods.append(period)
 
         named = self._link_entities(normalized)
+        # A catalogue author mentioned as the subject of a book is evidence, not an
+        # authorship constraint. "books about X" must still allow other authors.
+        if any(hint in normalized.lower() for hint in _ABOUT_PERSON_HINTS):
+            named = [
+                ref.model_copy(update={"hard": False}) if ref.kind == "author" else ref
+                for ref in named
+            ]
 
         multi_hop = bool(concepts.occupations) and bool(concepts.periods or concepts.subjects)
         intent = "multi_hop" if multi_hop else "semantic"
@@ -229,7 +267,7 @@ class QueryUnderstanding:
         return plan
 
     @staticmethod
-    def _year_filter(normalized: str, years: list[int]) -> tuple[int, int] | None:
+    def _year_filter(normalized: str, years: list[int]) -> tuple[int | None, int | None] | None:
         """Only treat a date as a publication constraint when the query says so.
 
         "১৯৭১ সালের বই" is about the war; "১৯৭১ সালে প্রকাশিত বই" is about the print date.
@@ -238,7 +276,14 @@ class QueryUnderstanding:
         set for the most common topic in the catalogue, so both forms require an explicit
         authorship or publication word.
         """
-        if not any(hint in normalized for hint in _PUBLICATION_HINTS):
+        probe = normalized.lower()
+        if not any(hint in probe for hint in _PUBLICATION_HINTS):
+            return None
+        # "books written about the 1971 war" dates the subject, not the edition. The
+        # weaker written/লেখা cue only opens a publication range when no about-cue is
+        # attached; explicit published/প্রকাশিত phrasing always wins.
+        if (any(hint in probe for hint in _SUBJECT_DATE_HINTS)
+                and not any(hint in probe for hint in _STRONG_PUBLICATION_HINTS)):
             return None
 
         # A named span wins over a bare year: "একবিংশ শতাব্দীতে লেখা ১৯৭১-এর বই" is a
@@ -248,8 +293,12 @@ class QueryUnderstanding:
             return span
         if not years:
             return None
-        if len(years) >= 2 and any(hint in normalized for hint in _RANGE_HINTS):
+        if len(years) >= 2 and any(hint in probe for hint in _RANGE_HINTS):
             return min(years), max(years)
+        if any(hint in probe for hint in _AFTER_HINTS):
+            return years[0], None
+        if any(hint in probe for hint in _BEFORE_HINTS):
+            return None, years[0]
         return years[0], years[0]
 
     # ------------------------------------------------------------------ entity linking
@@ -285,12 +334,14 @@ class QueryUnderstanding:
         """Map out-of-vocabulary tokens onto the nearest indexed term (typo tolerance)."""
         if not self.vocabulary:
             return tokens
-        vocab = list(self.vocabulary)
         repaired = []
         for token in tokens:
             if token in self.vocabulary or len(token) < 4:
                 repaired.append(token)
                 continue
+            # Never "correct" বাংলা into a Latin token (or vice versa). Candidate lists
+            # are sorted so RapidFuzz's equal-score tie is deterministic.
+            vocab = self._vocabulary_by_script.get(_script(token), [])
             match = fuzzy.extractOne(token, vocab, score_cutoff=_TYPO_THRESHOLD)
             repaired.append(match[0] if match else token)
         return repaired
@@ -455,6 +506,14 @@ _PERSONAL_HINTS = ("আমার", "আমাকে", "আমি পছন্দ
 
 def _wants_personalization(query: str) -> bool:
     return any(hint in query for hint in _PERSONAL_HINTS)
+
+
+def _script(token: str) -> str:
+    if any("\u0980" <= char <= "\u09ff" for char in token):
+        return "bn"
+    if any("a" <= char.lower() <= "z" for char in token):
+        return "latin"
+    return "other"
 
 
 def _dedup(items: list[str]) -> list[str]:

@@ -25,6 +25,8 @@ from search.indexing.kg_index import KnowledgeGraph
 from search.indexing.bm25_index import LexicalIndex
 from search.ranking.profile_index import ProfileStore
 from search.indexing.dense_index import VectorIndex
+from search.indexing.manifest import IndexManifest, expected_manifest, publish
+from search.indexing.passages import make_passages
 from ingest import run as ingest_run
 from search.llm import LMStudio
 from search.engine import SearchEngine
@@ -65,6 +67,7 @@ def doctor():
         ("lexical index", settings.lexical_dir),
         ("vector index", settings.vector_dir),
         ("knowledge graph", settings.graph_path),
+        ("index manifest", settings.index_manifest_path),
     ):
         table.add_row(label, "[green]present[/]" if path.exists() else "[yellow]missing[/]")
     console.print(table)
@@ -95,6 +98,20 @@ def build_index(
     records = ingest_run.load_indexed(settings)
     console.print(f"indexing {len(records)} books")
 
+    previous: IndexManifest | None = None
+    if settings.index_manifest_path.exists():
+        try:
+            previous = IndexManifest.model_validate_json(
+                settings.index_manifest_path.read_text(encoding="utf-8")
+            )
+        except Exception:  # noqa: BLE001
+            previous = None
+    pending = expected_manifest(records, settings, vector_enabled=not no_vector)
+    settings.index_manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    # An incomplete manifest is an intentional build marker. If this process dies, the
+    # server refuses to combine partially updated artifacts with the prior generation.
+    settings.index_manifest_path.write_text(pending.model_dump_json(indent=2), encoding="utf-8")
+
     LexicalIndex.build(records, settings)
     console.print("[green]lexical[/] index built")
 
@@ -102,15 +119,36 @@ def build_index(
     console.print(f"[green]graph[/] built — {graph.stats()}")
 
     if no_vector:
+        publish(pending, settings.index_manifest_path)
         console.print("[yellow]skipped[/] dense index")
         return
     embedder = make_embedder(settings)
     console.print(f"embedding with [bold]{embedder.name}[/] ({embedder.dimension}-dim)")
     with Progress(SpinnerColumn(), *Progress.get_default_columns(), TimeElapsedColumn(),
                   console=console) as progress:
-        task = progress.add_task("embedding", total=len(records))
+        passages = make_passages(
+            records, tokens=settings.passage_tokens, overlap=settings.passage_overlap
+        )
+        task = progress.add_task("embedding", total=len(records) + len(passages))
+        identity_matches = bool(
+            previous
+            and previous.schema_version == pending.schema_version
+            and previous.catalogue_fingerprint == pending.catalogue_fingerprint
+            and previous.vector_enabled
+            and previous.embedding_backend == pending.embedding_backend
+            and previous.embedding_model == pending.embedding_model
+            and previous.embedding_revision == pending.embedding_revision
+            and previous.query_prompt == pending.query_prompt
+            and previous.document_prompt == pending.document_prompt
+            and previous.text_preparation == pending.text_preparation
+            and previous.passage_tokens == pending.passage_tokens
+            and previous.passage_overlap == pending.passage_overlap
+        )
         VectorIndex.build(records, embedder, settings,
-                          on_batch=lambda n: progress.advance(task, n), resume=not redo_vector)
+                          on_batch=lambda n: progress.advance(task, n),
+                          resume=not redo_vector and identity_matches)
+    pending.embedding_dimension = embedder.dimension
+    publish(pending, settings.index_manifest_path)
     console.print("[green]vector[/] index built")
 
 
@@ -197,6 +235,8 @@ def search(
 
     if show_rerank:
         _print_rerank(response.rerank, show_passages)
+    elif response.rerank_fallback:
+        console.print(f"[yellow]{response.rerank_fallback}[/]")
 
     if not response.hits:
         console.print("[yellow]কোনো ফলাফল পাওয়া যায়নি।[/]")
@@ -214,7 +254,8 @@ def search(
 def _print_rerank(trace, show_passages: bool) -> None:
     """Print reranker input and output, in the order the reranker put them."""
     if trace is None or not trace.entries:
-        console.print("[yellow]reranker produced no trace[/] — nothing reached stage 2")
+        detail = getattr(trace, "fallback", "") if trace else ""
+        console.print(f"[yellow]{detail or 'reranker produced no trace'}[/]")
         return
 
     # `noop` is what every backend degrades to on a failed load or a dead server, and its

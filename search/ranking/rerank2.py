@@ -164,20 +164,21 @@ class LMStudioReranker:
         # Fusion order, used for any candidate the model could not judge. Falling back to
         # a flat 0.5 is what made the old grader useless: it is an *assertion* of average
         # relevance, and it overrides the ordering retrieval already found.
-        fallback = NoOpReranker().score(query, records)
-
         try:
             judged = self.llm.map_parallel(
                 lambda record: self._cached(query, record), list(records)
             )
         except Exception as exc:  # noqa: BLE001 - reranking is an improvement, not a dependency
             log.warning("LM Studio reranking raised (%s) -- keeping fusion order", exc)
-            return fallback
+            return []
 
         if all(value is None for value in judged):
             log.warning("LM Studio reranker produced no usable scores -- keeping fusion order")
-            return fallback
-        scores = [fallback[i] if value is None else value for i, value in enumerate(judged)]
+            return []
+        if any(value is None for value in judged):
+            log.warning("LM Studio reranker returned partial scores -- keeping fusion order")
+            return []
+        scores = [float(value) for value in judged]
         _log_pairs(log, self.model, query,
                    [(query, _passage(r, self.settings)) for r in records], scores)
         return scores

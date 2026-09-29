@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 
 from config import Settings, settings as default_settings
 from search.core.schemas import Candidate, Evidence, Filters, IndexedBook
+from search.core import bengali
 
 
 class Fused(BaseModel):
@@ -65,8 +66,8 @@ def _matches(record: IndexedBook, f: Filters) -> bool:
     book, enrichment = record.book, record.enrichment
     checks = [
         (f.author_ids, [book.author_id]),
-        (f.authors, [book.author]),
-        (f.publishers, [book.publisher]),
+        ([bengali.key(v) for v in f.authors], [bengali.key(book.author)]),
+        ([bengali.key(v) for v in f.publishers], [bengali.key(book.publisher)]),
         (f.genres, enrichment.genres),
         (f.subjects, enrichment.subjects),
         (f.periods, enrichment.periods),

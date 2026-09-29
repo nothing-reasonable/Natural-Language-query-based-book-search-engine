@@ -93,7 +93,9 @@ ALIAS_FILE = Path(__file__).resolve().parent.parent / "data" / "author_aliases.y
 def normalize_book(book: Book) -> Book:
     data = book.model_dump()
     for field, value in data.items():
-        if isinstance(value, str):
+        # URL bytes are identifiers, not prose. Bengali/punctuation normalisation can
+        # corrupt percent-encoding and must never touch them.
+        if isinstance(value, str) and field not in {"cover_url", "source_url"}:
             data[field] = bengali.normalize(value)
     # Strip the storefront copy *before* scoring quality, so a book whose only
     # "description" was an advert is correctly recorded as having none.

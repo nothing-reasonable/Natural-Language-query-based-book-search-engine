@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 Intent = Literal["simple", "semantic", "filtered", "personalized", "multi_hop"]
 
@@ -36,6 +36,17 @@ class Book(BaseModel):
     language: str = "bn"
     table_of_contents: str = ""
     isbn: str = ""
+    cover_url: str = ""
+    source_url: str = ""
+
+    @field_validator("cover_url", "source_url")
+    @classmethod
+    def validate_web_url(cls, value: str) -> str:
+        """Keep URL fields inert and predictable; invalid source data becomes empty."""
+        value = (value or "").strip()
+        if value and not value.lower().startswith(("http://", "https://")):
+            return ""
+        return value
 
     # --- ranking signals ---
     popularity: float = 0.0
@@ -73,6 +84,10 @@ class EnrichmentRecord(BaseModel):
 
     book_id: str
     enrichment: Enrichment
+    # Hash of the catalogue text from which this enrichment was produced. Legacy rows
+    # have no provenance and therefore cannot be trusted after a description changes.
+    input_fingerprint: str = ""
+    method: str = ""  # "llm" | "dictionary"
 
 
 class IndexedBook(BaseModel):
@@ -101,6 +116,8 @@ class Chunk(BaseModel):
     book_id: str
     text: str
     ordinal: int = 0
+    source_field: str = "description"
+    fingerprint: str = ""
 
 
 # --------------------------------------------------------------------------- query plan
@@ -196,9 +213,11 @@ class QueryPlan(BaseModel):
 class Evidence(BaseModel):
     """Why a book surfaced. Explanations are rendered from these, never invented."""
 
-    channel: str  # lexical | dense | graph | facet
+    channel: str  # title | lexical | dense | graph | facet
     detail: str  # Bengali phrase shown to the user
     terms: list[str] = Field(default_factory=list)
+    excerpt: str = ""  # verbatim catalogue passage, never generated
+    source_field: str = ""
 
 
 class Candidate(BaseModel):
@@ -218,6 +237,8 @@ class SearchHit(BaseModel):
     channels: list[str] = Field(default_factory=list)
     evidence: list[Evidence] = Field(default_factory=list)
     explanation: str = ""
+    match_excerpt: str = ""
+    match_source: str = ""
 
 
 class RerankEntry(BaseModel):
@@ -252,6 +273,7 @@ class RerankTrace(BaseModel):
     model: str = ""
     query: str = ""  # the normalised query, which is not always what the user typed
     entries: list[RerankEntry] = Field(default_factory=list)
+    fallback: str = ""
 
 
 class SearchResponse(BaseModel):
@@ -275,3 +297,18 @@ class SearchResponse(BaseModel):
     rerank: RerankTrace | None = None
     # Where the full stage-by-stage trace was written, "" when tracing is off.
     trace_path: str = ""
+    applied_filters: Filters = Field(default_factory=Filters)
+    rerank_backend: str = ""
+    rerank_fallback: str = ""
+    index_generation: str = ""
+
+
+class SearchOptions(BaseModel):
+    """Request-scoped switches. Search never mutates the shared engine configuration."""
+
+    plan_mode: Literal["never", "auto", "always"] | None = None
+    rerank: bool | None = None
+    rag_fusion: bool | None = None
+    shortlist_size: int | None = Field(default=None, ge=1, le=100)
+    trace_rerank: bool = False
+    trace: bool | None = None

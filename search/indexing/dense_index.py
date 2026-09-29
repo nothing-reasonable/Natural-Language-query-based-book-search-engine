@@ -22,6 +22,7 @@ from config import Settings, settings as default_settings
 from search.indexing.embedding import Embedder
 from search.core.fields import embedding_text
 from search.core.schemas import Chunk, Filters, IndexedBook
+from search.indexing.passages import make_passages, record_fingerprint
 
 log = logging.getLogger(__name__)
 
@@ -37,6 +38,8 @@ def _arrow_schema(dim: int) -> pa.Schema:
             pa.field("book_id", pa.string()),
             pa.field("kind", pa.string()),
             pa.field("text", pa.string()),
+            pa.field("source_field", pa.string()),
+            pa.field("fingerprint", pa.string()),
             pa.field("author_id", pa.string()),
             pa.field("publisher", pa.string()),
             pa.field("language", pa.string()),
@@ -68,30 +71,53 @@ class VectorIndex:
 
         table = None
         done: set[str] = set()
+        passages = make_passages(
+            records, tokens=settings.passage_tokens, overlap=settings.passage_overlap
+        )
+        records_by_id = {record.book_id: record for record in records}
+        expected = {
+            record.book_id: record_fingerprint(record) for record in records
+        } | {chunk.chunk_id: chunk.fingerprint for chunk in passages}
         if TABLE in db.table_names():
             existing = db.open_table(TABLE)
-            # Resuming only makes sense if the stored vectors came from the same model.
-            same_model = resume and _vector_dim(existing) == embedder.dimension
-            if same_model:
+            # Dimension is necessary but not sufficient for compatibility; the manifest
+            # checks model identity/prompts. Here we additionally require the v2 row
+            # schema before attempting an incremental resume.
+            compatible_schema = all(
+                name in existing.schema.names for name in ("fingerprint", "source_field")
+            )
+            same_shape = resume and compatible_schema and _vector_dim(existing) == embedder.dimension
+            if same_shape:
                 table = existing
-                done = _stored_book_ids(table)
+                stored = _stored_rows(table)
+                obsolete = [row_id for row_id, fingerprint in stored.items()
+                            if expected.get(row_id) != fingerprint]
+                _delete_ids(table, obsolete)
+                done = {row_id for row_id, fingerprint in stored.items()
+                        if expected.get(row_id) == fingerprint}
             else:
                 if resume:
-                    log.warning("Existing index has a different vector size -- rebuilding it.")
+                    log.warning("Existing vector index is incompatible -- rebuilding it.")
                 db.drop_table(TABLE)
 
-        todo = [r for r in records if r.book_id not in done]
-        log.info("embedding %d books (%d already done)", len(todo), len(done))
+        items: list[tuple[str, str, IndexedBook, Chunk | None]] = []
+        for record in records:
+            if record.book_id not in done:
+                items.append((record.book_id, embedding_text(record), record, None))
+        for chunk in passages:
+            if chunk.chunk_id not in done and chunk.book_id in records_by_id:
+                items.append((chunk.chunk_id, chunk.text, records_by_id[chunk.book_id], chunk))
+        log.info("embedding %d rows (%d unchanged)", len(items), len(done))
         if on_batch is not None and done:
-            on_batch(len(records) - len(todo))
+            on_batch(len(done))
 
-        for start in range(0, len(todo), flush_every):
-            batch = todo[start : start + flush_every]
-            texts = [embedding_text(r) for r in batch]
+        for start in range(0, len(items), flush_every):
+            batch = items[start : start + flush_every]
+            texts = [item[1] for item in batch]
             vectors = embedder.embed_documents(texts, on_batch=on_batch)
             rows = [
-                _book_row(record, text, vector)
-                for record, text, vector in zip(batch, texts, vectors, strict=True)
+                _book_row(record, text, vector, chunk=chunk)
+                for (_, text, record, chunk), vector in zip(batch, vectors, strict=True)
             ]
             if table is None:
                 table = db.create_table(TABLE, data=rows, schema=_arrow_schema(vectors.shape[1]))
@@ -118,40 +144,64 @@ class VectorIndex:
             record = records_by_id.get(chunk.book_id)
             if record is None:
                 continue
-            row = _book_row(record, chunk.text, vector)
-            row["id"] = chunk.chunk_id
-            row["kind"] = "chunk"
+            row = _book_row(record, chunk.text, vector, chunk=chunk)
             rows.append(row)
         self.table.add(rows)
         return len(rows)
 
     # ------------------------------------------------------------------ query
     def search(self, query_vector: np.ndarray, k: int = 50,
-               filters: Filters | None = None) -> list[tuple[str, float, str]]:
-        """Returns (book_id, similarity in 0..1, matched text snippet), best first."""
+               filters: Filters | None = None) -> list[tuple[str, float, str, str]]:
+        """Return the best row per book as (id, score, excerpt, source field)."""
         query = self.table.search(query_vector, vector_column_name="vector").metric("cosine")
         where = build_where(filters)
         if where:
             query = query.where(where, prefilter=True)
-        # Over-fetch so that several chunks of one book still leave room for other books.
-        hits = query.limit(k * 3).to_list()
+        # Over-fetch before book-level aggregation so a long description cannot fill the
+        # candidate list with passages from one title.
+        total_rows = self.table.count_rows()
+        limit = min(total_rows, max(k * 10, k))
+        hits = query.limit(limit).to_list()
+        # Pathological long texts can still fill an over-fetch window. Grow only when
+        # needed, stopping as soon as k distinct books are represented.
+        while len({hit["book_id"] for hit in hits}) < min(k, total_rows) and limit < total_rows:
+            limit = min(total_rows, limit * 2)
+            hits = query.limit(limit).to_list()
 
-        best: dict[str, tuple[float, str]] = {}
+        # Ranking uses the best row of either kind; evidence separately retains the best
+        # source passage even when the book-level metadata vector scored slightly higher.
+        best: dict[str, dict] = {}
         for hit in hits:
             score = 1.0 - float(hit["_distance"])
             book_id = hit["book_id"]
-            if score > best.get(book_id, (-1.0, ""))[0]:
-                best[book_id] = (score, hit.get("text", "")[:200])
-        ranked = sorted(best.items(), key=lambda kv: (-kv[1][0], kv[0]))[:k]
-        return [(book_id, score, snippet) for book_id, (score, snippet) in ranked]
+            entry = best.setdefault(book_id, {
+                "score": -1.0, "passage_score": -1.0, "excerpt": "", "source": ""
+            })
+            entry["score"] = max(entry["score"], score)
+            if hit.get("kind") == "passage" and score > entry["passage_score"]:
+                entry.update({
+                    "passage_score": score,
+                    "excerpt": _excerpt(hit.get("text", ""), 500),
+                    "source": hit.get("source_field", ""),
+                })
+        ranked = sorted(best.items(), key=lambda kv: (-kv[1]["score"], kv[0]))[:k]
+        return [(book_id, data["score"], data["excerpt"], data["source"])
+                for book_id, data in ranked]
 
 
 # --------------------------------------------------------------------------- helpers
 
-def _stored_book_ids(table) -> set[str]:
-    """Column-projected scan -- never pulls the vectors back out of storage."""
-    rows = table.search().select(["book_id"]).limit(table.count_rows()).to_list()
-    return {row["book_id"] for row in rows}
+def _stored_rows(table) -> dict[str, str]:
+    """Column-projected scan -- never pulls vectors back out of storage."""
+    rows = table.search().select(["id", "fingerprint"]).limit(table.count_rows()).to_list()
+    return {row["id"]: row.get("fingerprint", "") for row in rows}
+
+
+def _delete_ids(table, row_ids: list[str]) -> None:
+    for start in range(0, len(row_ids), 200):
+        batch = row_ids[start : start + 200]
+        if batch:
+            table.delete("id IN (" + ", ".join(_lit(value) for value in batch) + ")")
 
 
 def _vector_dim(table) -> int:
@@ -159,13 +209,16 @@ def _vector_dim(table) -> int:
     return getattr(field.type, "list_size", -1)
 
 
-def _book_row(record: IndexedBook, text: str, vector: np.ndarray) -> dict:
+def _book_row(record: IndexedBook, text: str, vector: np.ndarray,
+              *, chunk: Chunk | None = None) -> dict:
     book, enrichment = record.book, record.enrichment
     return {
-        "id": book.book_id,
+        "id": chunk.chunk_id if chunk else book.book_id,
         "book_id": book.book_id,
-        "kind": "book",
+        "kind": "passage" if chunk else "book",
         "text": text[:4000],
+        "source_field": chunk.source_field if chunk else "catalogue",
+        "fingerprint": chunk.fingerprint if chunk else record_fingerprint(record),
         "author_id": book.author_id,
         "publisher": book.publisher,
         "language": book.language,
@@ -203,3 +256,11 @@ def build_where(filters: Filters | None) -> str:
 
 def _lit(value: str) -> str:
     return "'" + str(value).replace("'", "''") + "'"
+
+
+def _excerpt(text: str, limit: int) -> str:
+    text = (text or "").strip()
+    if len(text) <= limit:
+        return text
+    head = text[:limit].rsplit(" ", 1)[0] or text[:limit]
+    return head.rstrip(" ,;।") + "…"

@@ -23,6 +23,7 @@ load-bearing rather than cosmetic -- see `_passage` and `_blurb` for what it fix
 from __future__ import annotations
 
 import logging
+import math
 from typing import Protocol
 
 from pydantic import BaseModel, Field
@@ -76,8 +77,9 @@ class NoOpReranker:
     model_name = ""
 
     def score(self, query: str, records: list[IndexedBook]) -> list[float]:
-        n = len(records)
-        return [1.0 - i / max(n, 1) for i in range(n)]
+        # No invented "semantic" values: an empty result tells the engine to preserve
+        # fusion order and report the actual fallback.
+        return []
 
 
 class LLMReranker:
@@ -91,13 +93,15 @@ class LLMReranker:
         self.model_name = ""  # resolved server-side; asking here would cost a round trip
 
     def score(self, query: str, records: list[IndexedBook]) -> list[float]:
-        scores = [0.5] * len(records)
+        scores = [0.0] * len(records)
         batches = [
             (start, records[start : start + self.batch_size])
             for start in range(0, len(records), self.batch_size)
         ]
         results = self.llm.map_parallel(lambda b: self._score_batch(query, b[1]), batches)
         for (start, batch), graded in zip(batches, results, strict=True):
+            if len(graded) != len(batch):
+                return []
             for offset, value in enumerate(graded):
                 if offset < len(batch):
                     scores[start + offset] = value
@@ -110,9 +114,9 @@ class LLMReranker:
             graded = self.llm.structured(RERANK_SYSTEM, user, _Scores, max_tokens=600)
         except Exception as exc:  # noqa: BLE001
             log.warning("rerank batch failed: %s", exc)
-            return [0.5] * len(batch)
+            return []
         by_id = {s.id: max(0.0, min(1.0, s.score / 10.0)) for s in graded.scores}
-        return [by_id.get(i, 0.5) for i in range(len(batch))]
+        return [by_id[i] for i in range(len(batch))] if len(by_id) == len(batch) else []
 
 
 class CrossEncoderReranker:
@@ -172,9 +176,13 @@ class CrossEncoderReranker:
                                      show_progress_bar=False)
         except Exception as exc:  # noqa: BLE001 - never let reranking kill a search
             log.warning("cross-encoder scoring failed (%s); keeping fusion order", exc)
-            return NoOpReranker().score(query, records)
+            return []
         # bge-reranker already emits 0..1 via its sigmoid head; clamp for safety only.
-        scores = [max(0.0, min(1.0, float(v))) for v in raw]
+        scores = [float(v) for v in raw]
+        if len(scores) != len(records) or not all(math.isfinite(v) for v in scores):
+            log.warning("cross-encoder returned invalid or misaligned scores; keeping fusion order")
+            return []
+        scores = [max(0.0, min(1.0, value)) for value in scores]
         _log_pairs(log, self.model_name, query, pairs, scores)
         return scores
 

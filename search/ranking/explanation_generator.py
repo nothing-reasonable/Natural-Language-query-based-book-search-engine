@@ -19,7 +19,7 @@ from search.core.schemas import Evidence, IndexedBook
 
 # `facet` first: when the search was constrained to an author or publisher, that is the
 # single most important thing to tell the user about why they are seeing this list.
-CHANNEL_ORDER = ("facet", "graph", "lexical", "dense", "profile")
+CHANNEL_ORDER = ("facet", "title", "graph", "lexical", "dense", "profile")
 
 # Bengali sentence enders, plus the ASCII ones that show up in translated flaps.
 _SENTENCE_SPLIT = re.compile(r"(?<=[।!?.])\s+")

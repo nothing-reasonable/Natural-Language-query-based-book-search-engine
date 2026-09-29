@@ -32,6 +32,12 @@ COLUMN_MAP: dict[str, str] = {
     "table of contents": "table_of_contents",
     "contents": "table_of_contents",
     "isbn": "isbn",
+    "cover url": "cover_url",
+    "cover_url": "cover_url",
+    "image url": "cover_url",
+    "source url": "source_url",
+    "source_url": "source_url",
+    "book url": "source_url",
 }
 
 INT_FIELDS = {"publish_year"}

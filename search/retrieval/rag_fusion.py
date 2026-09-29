@@ -37,6 +37,7 @@ from search.retrieval.fusion import Fused
 from search.llm import LMStudio
 from search.query.query_understanding import QueryUnderstanding
 from search.retrieval.retrieve import Retriever
+from search.core.schemas import QueryPlan
 
 log = logging.getLogger(__name__)
 
@@ -112,7 +113,8 @@ def _usable(drafted: list[str], query: str, count: int) -> list[str]:
 
 def search(query: str, understanding: QueryUnderstanding, retriever: Retriever,
            llm: LMStudio | None, settings: Settings = default_settings,
-           top_n: int | None = None) -> tuple[list[Fused], list[str], dict]:
+           top_n: int | None = None,
+           base_plan: QueryPlan | None = None) -> tuple[list[Fused], list[str], dict]:
     """Multi-query retrieval + cross-variant RRF.
 
     Returns (fused candidates, the queries actually used, per-channel hits) so the caller
@@ -126,7 +128,13 @@ def search(query: str, understanding: QueryUnderstanding, retriever: Retriever,
     channel_hits: dict[str, list[str]] = {}
     for index, text in enumerate(queries):
         try:
-            plan = understanding.analyze(text)
+            plan = (base_plan.model_copy(deep=True) if index == 0 and base_plan is not None
+                    else understanding.analyze(text, mode="never"))
+            # Reformulations are retrieval aids, not permission to reinterpret or drop
+            # constraints. Every channel receives the original request's filters before
+            # it chooses its top-k candidates.
+            if base_plan is not None:
+                plan.filters = base_plan.filters.model_copy(deep=True)
             channels = retriever.retrieve(plan)
         except Exception as exc:  # noqa: BLE001 - one bad variant must not sink the search
             log.warning("retrieval failed for variant %r: %s", text, exc)
