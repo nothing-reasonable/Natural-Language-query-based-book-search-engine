@@ -17,3 +17,4 @@ eval/reranker/assessment*.json
 eval/reranker/report*.json
 eval/reranker/report*.csv
 eval/reranker/report*.md
+eval/reranker/history/

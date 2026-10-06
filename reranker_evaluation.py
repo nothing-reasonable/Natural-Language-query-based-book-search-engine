@@ -1,6 +1,7 @@
 """Evidence-based reranker evaluation. Only `run` imports the search/model stack.
 
-prepare -> run (search PC) -> pool -> assess the JSON sheet -> score (offline).
+run (search PC, fresh from queries.txt) -> pool -> assess -> score (offline).
+`prepare` is optional for inspecting queries and configuring a protocol in advance.
 See RERANKER_EVALUATION.md for the protocol, decisions, and annotation instructions.
 """
 from __future__ import annotations
@@ -78,13 +79,10 @@ def read_queries(path: Path) -> dict:
             "query_count": len(rows), "unique_query_count": len(seen), "queries": rows}
 
 
-def prepare(queries_path: Path, out_dir: Path) -> None:
-    if any((out_dir / name).exists() for name in ("queries.json", "protocol.json")):
-        raise ValueError("prepared files already exist; choose a new --out-dir to preserve decisions")
-    manifest = read_queries(queries_path)
+def new_protocol(manifest: dict) -> dict:
     ambiguous = {"জুলাইয়ের আন্দোলন", "পঞ্চপাণ্ডব ক্রিকেটাদের গল্প",
                  "হুমায়ূন আহমেদের আশির দশকে লেখা উপন্যাস"}
-    protocol = {
+    return {
         "version": 1, "query_manifest_digest": digest(manifest),
         "assessment_mode": None,  # assistant_final | assistant_draft
         "duplicate_policy": None,  # all | unique
@@ -99,10 +97,87 @@ def prepare(queries_path: Path, out_dir: Path) -> None:
         "evidence_policy": "Only exported catalogue metadata. No prior knowledge, generated "
                            "enrichment, ranking scores, explanations, or external facts.",
     }
+
+
+def prepare(queries_path: Path, out_dir: Path) -> None:
+    if any((out_dir / name).exists() for name in ("queries.json", "protocol.json")):
+        raise ValueError("prepared files already exist; choose a new --out-dir to preserve decisions")
+    manifest = read_queries(queries_path)
+    protocol = new_protocol(manifest)
     write_json(out_dir / "queries.json", manifest)
     write_json(out_dir / "protocol.json", protocol)
     print(f"Prepared {len(manifest['queries'])} rows ({manifest['unique_query_count']} unique).")
     print(f"Resolve null decisions in {out_dir / 'protocol.json'} before pooling/scoring.")
+
+
+def fresh_protocol(manifest: dict, previous_manifest: dict | None,
+                   previous_protocol: dict | None) -> dict:
+    """Retain agreed settings and interpretations only for unchanged query text."""
+    protocol = new_protocol(manifest)
+    previous = previous_protocol or {}
+    row_fields = ("query_intents", "query_guidance", "categories", "excluded_queries")
+    for key in protocol.keys() - {"query_manifest_digest", *row_fields}:
+        if key in previous and previous[key] is not None:
+            protocol[key] = json.loads(json.dumps(previous[key]))
+    # These are the agreed project defaults when no existing protocol is supplied.
+    for key, value in {"assessment_mode": "assistant_draft", "duplicate_policy": "all",
+                       "include_bm25": False}.items():
+        if protocol[key] is None:
+            protocol[key] = value
+    by_query = {}
+    if previous_manifest and previous.get("query_manifest_digest") == digest(previous_manifest):
+        for row in previous_manifest["queries"]:
+            by_query.setdefault(row["query"], row["id"])
+    else:
+        for query_id, query in previous.get("query_sources", {}).items():
+            by_query.setdefault(query, query_id)
+    for row in manifest["queries"]:
+        old_id = by_query.get(row["query"])
+        if old_id is not None:
+            for field in row_fields:
+                if old_id in previous.get(field, {}):
+                    protocol[field][row["id"]] = previous[field][old_id]
+    protocol["query_sources"] = {row["id"]: row["query"] for row in manifest["queries"]}
+    protocol["decision_log"] = previous.get("decision_log", [])
+    protocol["run_id"] = timestamp()
+    return protocol
+
+
+def archive_active_files(out: Path) -> Path | None:
+    """Move known active artifacts into history before a fresh run replaces them."""
+    folder = out.parent.resolve()
+    paths = {folder / name for name in ("queries.json", "protocol.json", "run.json", "assessment.json",
+                                       "report.json", "report.csv", "report.md")}
+    paths.add(folder / out.name)
+    existing = sorted((path for path in paths if path.exists()), key=lambda path: path.name)
+    if not existing:
+        return None
+    # Verify both the source directory and destination stay inside the named evaluation directory.
+    archive = folder / "history" / datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+    if not archive.resolve().is_relative_to(folder):
+        raise ValueError("evaluation history resolves outside the output directory")
+    if any(path.is_symlink() or not path.is_file() for path in existing):
+        raise ValueError("active evaluation artifacts must be regular files; choose a different --out directory")
+    archive.mkdir(parents=True, exist_ok=False)
+    for path in existing:
+        path.replace(archive / path.name)
+    return archive
+
+
+def read_run_protocol(run_path: Path, protocol_path: Path | None = None) -> tuple[dict, dict]:
+    """A transferred run is self-contained; local edits apply only to the same run."""
+    bundle = read_json(run_path)
+    if protocol_path is not None:
+        return bundle, read_json(protocol_path)
+    local_path, embedded = run_path.parent / "protocol.json", bundle.get("protocol")
+    if embedded is not None:
+        if local_path.exists():
+            local = read_json(local_path)
+            if (local.get("run_id") == embedded.get("run_id")
+                    and local.get("query_manifest_digest") == digest(bundle["query_manifest"])):
+                return bundle, local
+        return bundle, embedded
+    return bundle, read_json(local_path)  # Legacy exports without an embedded protocol.
 
 
 def validate_protocol(manifest: dict, protocol: dict, *, require_decisions: bool = True) -> None:
@@ -147,14 +222,24 @@ def validate_protocol(manifest: dict, protocol: dict, *, require_decisions: bool
 
 def run_searches(manifest_path: Path, protocol_path: Path, queries_path: Path, out: Path) -> int:
     """GPU/search PC only. One retrieval per row; all paired rankings share candidates."""
-    manifest, protocol = read_json(manifest_path), read_json(protocol_path)
+    if (out.name in {"queries.json", "protocol.json", "assessment.json", "report.json"}
+            or out.resolve() == queries_path.resolve()):
+        raise ValueError("choose a run output path separate from query, protocol, assessment, and report files")
+    previous_manifest = read_json(manifest_path) if manifest_path.exists() else None
+    previous_protocol = read_json(protocol_path) if protocol_path.exists() else None
+    manifest = read_queries(queries_path)
+    protocol = fresh_protocol(manifest, previous_manifest, previous_protocol)
     validate_protocol(manifest, protocol, require_decisions=False)
-    if type(protocol.get("include_bm25")) is not bool:
-        raise ValueError("resolve include_bm25 in protocol.json before running searches")
-    if read_queries(queries_path) != manifest:
-        raise ValueError("queries.txt changed since prepare; prepare a new evaluation directory")
-    if out.exists():
-        raise ValueError("run output already exists; choose a new --out (do not overwrite evidence)")
+    if type(protocol["include_bm25"]) is not bool:
+        raise ValueError("include_bm25 must be true or false")
+    archive = archive_active_files(out)
+    write_json(out.parent / "queries.json", manifest)
+    write_json(out.parent / "protocol.json", protocol)
+    write_json(out, {"version": 1, "created_at": timestamp(), "status": "incomplete",
+                     "query_manifest": manifest, "protocol": protocol, "queries": [], "books": {}})
+    print(f"Fresh evaluation: {len(manifest['queries'])} queries from {queries_path}", flush=True)
+    if archive:
+        print(f"Previous evaluation archived at {archive}", flush=True)
 
     # These imports deliberately remain inside this command. Offline commands need stdlib only.
     from config import settings
@@ -183,6 +268,9 @@ def run_searches(manifest_path: Path, protocol_path: Path, queries_path: Path, o
     bundle = {
         "version": 1, "created_at": timestamp(), "status": "incomplete",
         "query_manifest": manifest, "catalogue_fingerprint": index.catalogue_fingerprint,
+        "protocol": protocol,
+        "query_source": {"name": manifest["source_name"], "sha256": manifest["source_sha256"]},
+        "previous_evaluation_archive": str(archive) if archive else None,
         "index_generation": index.generation, "candidate_depth": depth,
         "systems": systems, "include_bm25": protocol["include_bm25"],
         "warm_queries": True, "personalization": False,
@@ -297,10 +385,11 @@ def make_pool(bundle: dict, protocol: dict) -> dict:
             "rubric": RUBRIC, "evidence_policy": protocol["evidence_policy"], "queries": rows}
 
 
-def write_pool(run_path: Path, protocol_path: Path, out: Path) -> None:
+def write_pool(run_path: Path, protocol_path: Path | None, out: Path) -> None:
     if out.exists():
         raise ValueError("assessment sheet exists; choose a new --out to preserve judgments")
-    pool = make_pool(read_json(run_path), read_json(protocol_path))
+    bundle, protocol = read_run_protocol(run_path, protocol_path)
+    pool = make_pool(bundle, protocol)
     write_json(out, pool)
     count = sum(len(r["books"]) for r in pool["queries"])
     print(f"Wrote {count} shuffled query-book pairs -> {out}")
@@ -549,12 +638,14 @@ def main() -> int:
             stream.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
-    prep = commands.add_parser("prepare", help="snapshot queries and create a decision protocol (offline)")
+    prep = commands.add_parser("prepare", help="optional: inspect a query snapshot and configure a protocol (offline)")
     prep.add_argument("--queries", type=Path, default=ROOT / "queries.txt")
     prep.add_argument("--out-dir", type=Path, default=DEFAULT_DIR)
-    runner = commands.add_parser("run", help="collect paired rankings and catalogue metadata (search PC only)")
-    runner.add_argument("--manifest", type=Path, default=DEFAULT_DIR / "queries.json")
-    runner.add_argument("--protocol", type=Path, default=DEFAULT_DIR / "protocol.json")
+    runner = commands.add_parser("run", help="start fresh from queries.txt; archive previous artifacts (search PC only)")
+    runner.add_argument("--manifest", type=Path, default=DEFAULT_DIR / "queries.json",
+                        help="previous snapshot for reusing confirmed query interpretations; optional file")
+    runner.add_argument("--protocol", type=Path, default=DEFAULT_DIR / "protocol.json",
+                        help="settings to reuse; refreshed snapshots are written beside --out")
     runner.add_argument("--queries", type=Path, default=ROOT / "queries.txt")
     runner.add_argument("--out", type=Path, default=DEFAULT_DIR / "run.json")
     pooler = commands.add_parser("pool", help="create a blinded evidence sheet; never assign grades")
@@ -562,7 +653,8 @@ def main() -> int:
     scorer = commands.add_parser("score", help="compute graded metrics from completed judgments (offline)")
     for command in (pooler, checker, scorer):
         command.add_argument("--run", type=Path, default=DEFAULT_DIR / "run.json")
-        command.add_argument("--protocol", type=Path, default=DEFAULT_DIR / "protocol.json")
+        command.add_argument("--protocol", type=Path,
+                             help="override the run's embedded protocol (for confirmed intent/settings edits)")
     pooler.add_argument("--out", type=Path, default=DEFAULT_DIR / "assessment.json")
     for command in (checker, scorer):
         command.add_argument("--assessment", type=Path, default=DEFAULT_DIR / "assessment.json")
@@ -577,7 +669,8 @@ def main() -> int:
         elif args.command == "pool":
             write_pool(args.run, args.protocol, args.out)
         else:
-            bundle, protocol, assessment = read_json(args.run), read_json(args.protocol), read_json(args.assessment)
+            bundle, protocol = read_run_protocol(args.run, args.protocol)
+            assessment = read_json(args.assessment)
             if args.command == "check":
                 _, progress = check_assessment(bundle, protocol, assessment)
                 print(json.dumps(progress, ensure_ascii=False, indent=2))

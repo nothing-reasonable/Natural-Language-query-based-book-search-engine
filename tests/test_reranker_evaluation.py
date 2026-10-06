@@ -80,6 +80,55 @@ class EvaluationTests(unittest.TestCase):
         self.assertEqual(manifest["queries"][0]["query"], "একটি বিষয়")
         self.assertEqual(manifest["queries"][2]["duplicate_of"], "q001")
 
+    def test_cross_pc_formatting_changes_keep_the_same_queries(self):
+        with tempfile.TemporaryDirectory() as temp:
+            original = Path(temp) / "queries.txt"
+            copied = Path(temp) / "copied-queries.txt"
+            original.write_bytes("1. একটি বিষয়\n2. another query\n".encode("utf-8"))
+            copied.write_bytes(("\ufeff# Comment added on the other PC\r\n\r\n"
+                                "১। একটি বিষয়\r\n২। another query\r\n").encode("utf-8"))
+            prepared, current = ev.read_queries(original), ev.read_queries(copied)
+            self.assertNotEqual(prepared["source_sha256"], current["source_sha256"])
+            self.assertNotEqual(prepared, current)
+            protocol = ev.fresh_protocol(prepared, None, None)
+            protocol["query_intents"]["q001"] = "Confirmed meaning"
+            refreshed = ev.fresh_protocol(current, prepared, protocol)
+            ev.validate_protocol(current, refreshed)
+            self.assertEqual(refreshed["query_intents"]["q001"], "Confirmed meaning")
+
+    def test_lf_and_crlf_are_accepted_in_both_directions(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "queries.txt"
+            path.write_bytes(b"1. first\n2. second\n")
+            lf = ev.read_queries(path)
+            path.write_bytes(b"1. first\r\n2. second\r\n")
+            crlf = ev.read_queries(path)
+        ev.validate_protocol(crlf, ev.fresh_protocol(crlf, lf, ev.fresh_protocol(lf, None, None)))
+        ev.validate_protocol(lf, ev.fresh_protocol(lf, crlf, ev.fresh_protocol(crlf, None, None)))
+
+    def test_changed_added_removed_or_reordered_queries_get_fresh_snapshots(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "queries.txt"
+            path.write_bytes(b"1. first\n2. second\n")
+            prepared = ev.read_queries(path)
+            previous = ev.fresh_protocol(prepared, None, None)
+            previous["query_intents"]["q001"] = "Confirmed first intent"
+            previous["query_guidance"]["q001"] = "Guidance for first only"
+            variants = [b"1. changed\n2. second\n", b"1. first\n", b"1. first\n2. second\n3. third\n",
+                        b"1. second\n2. first\n"]
+            for content in variants:
+                with self.subTest(content=content):
+                    path.write_bytes(content)
+                    current = ev.read_queries(path)
+                    protocol = ev.fresh_protocol(current, prepared, previous)
+                    ev.validate_protocol(current, protocol)
+                    self.assertEqual(protocol["query_manifest_digest"], ev.digest(current))
+                    for row in current["queries"]:
+                        if row["query"] == "first":
+                            self.assertEqual(protocol["query_intents"][row["id"]], "Confirmed first intent")
+                        else:
+                            self.assertNotIn(row["id"], protocol["query_guidance"])
+
     def test_graded_ndcg_known_example_and_shared_ideal(self):
         grades = dict(zip("abcde", [0, 3, 1, 2, 0]))
         ideal = 7 + 3 / math.log2(3) + 1 / math.log2(4)
@@ -244,6 +293,8 @@ class EvaluationTests(unittest.TestCase):
             _, protocol = fixture(count=2)
             protocol["query_manifest_digest"] = ev.digest(manifest)
             protocol["query_intents"] = {r["id"]: r["query"] for r in manifest["queries"]}
+            protocol["query_intents"]["q001"] = "Confirmed meaning of theme one"
+            protocol["query_guidance"] = {"q001": "Only applies to theme one"}
             manifest_path, protocol_path, out = [temp / n for n in ("queries.json", "protocol.json", "run.json")]
             ev.write_json(manifest_path, manifest)
             ev.write_json(protocol_path, protocol)
@@ -275,38 +326,90 @@ class EvaluationTests(unittest.TestCase):
                 "search.engine": SimpleNamespace(SearchEngine=SimpleNamespace(load=lambda settings: engine)),
                 "search.indexing.manifest": SimpleNamespace(IndexManifest=SimpleNamespace(model_validate_json=lambda raw: index)),
             }
+            # The target PC checkout has different line endings, BOM, and labels.
+            query_path.write_bytes("\ufeff১। theme one\r\n২। theme two\r\n".encode("utf-8"))
             with patch.dict(sys.modules, modules):
                 self.assertEqual(ev.run_searches(manifest_path, protocol_path, query_path, out), 0)
             self.assertEqual(len(calls), 3)  # one discarded warmup, then two queries
             self.assertTrue(all(call[1]["options"].compare_rerank for call in calls))
             self.assertTrue(all(call[1]["options"].trace is False for call in calls))
             bundle = ev.read_json(out)
-            ev.validate_bundle(bundle, protocol)
+            refreshed = ev.read_json(protocol_path)
+            ev.validate_bundle(bundle, refreshed)
             self.assertEqual(bundle["books"]["b"]["description"], "Full original catalogue description.")
             self.assertNotIn("popularity", bundle["books"]["b"])
             self.assertNotIn("metadata_quality", bundle["books"]["b"])
             self.assertEqual(bundle["effective_reranker_model"], "fixture-model")
-            with patch.dict(sys.modules, modules), self.assertRaisesRegex(ValueError, "already exists"):
-                ev.run_searches(manifest_path, protocol_path, query_path, out)
+            self.assertEqual(bundle["query_source"]["sha256"], ev.read_queries(query_path)["source_sha256"])
+            self.assertEqual(bundle["query_manifest"], ev.read_queries(query_path))
+            self.assertEqual(refreshed["query_intents"]["q001"], "Confirmed meaning of theme one")
+            old_archive = Path(bundle["previous_evaluation_archive"])
+            self.assertEqual(ev.read_json(old_archive / "queries.json"), manifest)
+            self.assertEqual(bundle["protocol"], refreshed)
+            # A repeated run uses changed/added queries and archives all old assessment/results.
+            (temp / "assessment.json").write_text("Old reviewed grades", encoding="utf-8")
+            (temp / "report.json").write_text("Old report", encoding="utf-8")
+            query_path.write_text("1. theme changed\n2. theme two\n3. extra theme\n", encoding="utf-8")
+            with patch.dict(sys.modules, modules):
+                self.assertEqual(ev.run_searches(manifest_path, protocol_path, query_path, out), 0)
+            rerun, fresh = ev.read_run_protocol(out)
+            ev.validate_bundle(rerun, fresh)
+            self.assertEqual([r["query"] for r in rerun["queries"]], ["theme changed", "theme two", "extra theme"])
+            self.assertEqual(len(calls), 7)  # two-query run, then three-query run; warmup each time
+            self.assertNotIn("q001", fresh["query_guidance"])
+            self.assertEqual(fresh["assessment_mode"], "assistant_draft")
+            self.assertFalse((temp / "assessment.json").exists())
+            archive = Path(rerun["previous_evaluation_archive"])
+            self.assertEqual(ev.read_json(archive / "run.json"), bundle)
+            self.assertEqual((archive / "assessment.json").read_text(encoding="utf-8"), "Old reviewed grades")
+            self.assertEqual((archive / "report.json").read_text(encoding="utf-8"), "Old report")
 
-    def test_stale_query_file_is_rejected_before_loading_search(self):
+    def test_run_protocol_can_be_created_without_prepare(self):
         with tempfile.TemporaryDirectory() as temp:
-            temp = Path(temp)
-            query_path = temp / "queries.txt"
-            query_path.write_text("1. first query", encoding="utf-8")
-            manifest = ev.read_queries(query_path)
-            _, protocol = fixture()
-            protocol["query_manifest_digest"] = ev.digest(manifest)
-            ev.write_json(temp / "queries.json", manifest)
-            ev.write_json(temp / "protocol.json", protocol)
-            query_path.write_text("1. changed query", encoding="utf-8")
-            with self.assertRaisesRegex(ValueError, "changed since prepare"):
-                ev.run_searches(temp / "queries.json", temp / "protocol.json", query_path, temp / "run.json")
+            path = Path(temp) / "queries.txt"
+            path.write_text("1. first query", encoding="utf-8")
+            manifest = ev.read_queries(path)
+            protocol = ev.fresh_protocol(manifest, None, None)
+            ev.validate_protocol(manifest, protocol)
+            self.assertEqual(protocol["assessment_mode"], "assistant_draft")
+            self.assertFalse(protocol["include_bm25"])
 
-    def test_pending_replacement_blocks_even_search_pc_run(self):
+    def test_transferred_run_embeds_protocol_and_ignores_a_previous_runs_settings(self):
+        run = copy.deepcopy(self.run)
+        protocol = ev.fresh_protocol(run["query_manifest"], run["query_manifest"], self.protocol)
+        run["protocol"] = protocol
+        with tempfile.TemporaryDirectory() as temp:
+            out = Path(temp) / "run.json"
+            ev.write_json(out, run)
+            loaded_run, loaded_protocol = ev.read_run_protocol(out)
+            self.assertEqual(loaded_protocol, protocol)
+            ev.make_pool(loaded_run, loaded_protocol)
+            stale = dict(protocol, run_id="previous-run", assessment_mode="assistant_final")
+            ev.write_json(Path(temp) / "protocol.json", stale)
+            self.assertEqual(ev.read_run_protocol(out)[1], protocol)
+            # Confirmed edits associated with this run are used by subsequent pooling/scoring.
+            updated = dict(protocol, categories={"q001": "semantic"})
+            ev.write_json(Path(temp) / "protocol.json", updated)
+            self.assertEqual(ev.read_run_protocol(out)[1], updated)
+
+    def test_missing_snapshot_can_reuse_confirmed_intents_from_protocol_sources(self):
+        old = ev.fresh_protocol(self.run["query_manifest"], self.run["query_manifest"], self.protocol)
+        old["query_intents"]["q001"] = "Previously confirmed meaning"
+        refreshed = ev.fresh_protocol(self.run["query_manifest"], None, old)
+        self.assertEqual(refreshed["query_intents"]["q001"], "Previously confirmed meaning")
+
+    def test_unfinished_replacement_flag_is_an_invalid_protocol(self):
         self.protocol["pending_query_replacements"] = {"q001": None}
         with self.assertRaisesRegex(ValueError, "finalize query replacements"):
             ev.validate_protocol(self.run["query_manifest"], self.protocol, require_decisions=False)
+
+    def test_run_output_cannot_overwrite_the_query_source(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "queries.txt"
+            path.write_text("1. first query", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "separate from"):
+                ev.run_searches(Path(temp) / "queries.json", Path(temp) / "protocol.json", path, path)
+            self.assertEqual(path.read_text(encoding="utf-8"), "1. first query")
 
     def test_actual_score_blend_ablation_keeps_other_signals_and_availability(self):
         # Load the actual two pure ranking functions without importing model dependencies.

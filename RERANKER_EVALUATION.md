@@ -100,40 +100,57 @@ The intended final evaluation includes all 30 queries, without exclusions.
 
 `queries.txt` is the source of truth. Leading Bangla or ASCII numbering is removed
 from the query submitted to the engine; wording and spelling are otherwise
-preserved. Query IDs `q001`–`q030` identify rows in the frozen snapshot. Changing
-the source file after preparation requires a new snapshot and fresh searches.
+preserved. **Every `run` reads the current query file and creates a fresh snapshot.**
+Query IDs `q001`–`q030` identify rows in that run, not permanent positions across
+edited files. Added, removed, edited, and reordered queries are accepted without
+a separate `prepare` command. Windows/Unix line endings, a UTF-8 BOM, comments,
+blank lines, and numbering labels are handled by the parser. The actual source
+file's byte hash is recorded in each fresh snapshot and run export.
+
+Confirmed interpretations, guidance, categories, and exclusions are carried forward
+by matching **query text**, so moving a query does not attach another query's
+grading instructions to it. Changed wording receives a fresh interpretation.
+Known ambiguous queries with no confirmed interpretation remain pending until
+clarified before assessment; this does not block collecting search results.
 
 **Commands and transfer between PCs**
 
-Use the same code revision, `queries.txt`, and prepared protocol on both PCs.
+Use the updated code and the intended `queries.txt` on the search PC. Keep the
+provided `eval/reranker/protocol.json` and `queries.json` there to retain the
+interpretations and settings already agreed in this conversation.
 The search PC must already have its dependencies, catalogue, indexes, and models
 set up as described in `README.md`. This evaluation does not ingest, enrich, or
 rebuild them. Keep previous evaluation directories when repeating an experiment.
 
-1. Prepare the snapshot on either PC, unless the prepared files already exist:
-
-   ```powershell
-   python reranker_evaluation.py prepare
-   ```
-
-   This writes `eval/reranker/queries.json` and `protocol.json`. The supplied
-   protocol records the decisions agreed in this conversation. A newly prepared
-   protocol has unresolved choices as `null`; resolve those before pooling.
-   To start a separate experiment, use `--out-dir eval/reranker-next` and pass
-   those paths to later commands. Existing snapshots and assessment sheets are
-   protected from accidental overwriting.
-
-2. On the **search PC only**, export results and their original metadata:
+1. On the **search PC only**, start a fresh evaluation directly:
 
    ```powershell
    python reranker_evaluation.py run
    ```
 
+   No `prepare` step is required. The command reads `queries.txt`, automatically
+   writes fresh `queries.json` and `protocol.json`, and runs every current query.
+   It reuses existing scoring preferences. If no protocol exists, the agreed
+   project defaults are assistant drafts with required human review, no BM25
+   baseline, and equal weighting of all query rows.
+
+   Previous active snapshots, results, judgments, and reports are moved to
+   `eval/reranker/history/<timestamp>/` before their active files are replaced.
+   This preserves earlier evidence and prevents old judgments from being reused
+   for new results. Each run starts over; it does not resume an old query run.
+   The archive location is printed and recorded in the export. For a separate
+   output directory, use `--out eval/reranker-next/run.json`; snapshots are written
+   alongside that output. `--manifest` and `--protocol` can supply previous
+   interpretations/settings to reuse, but they do not freeze the query list.
+
+   An old **“queries.txt changed since prepare”** error means the search PC still
+   has the previous script. Update `reranker_evaluation.py` and run the same command.
+
    The runner loads the engine once, performs one discarded warmup search, then
    searches all 30 rows. It writes `eval/reranker/run.json` after every completed
    query. An interrupted or failed run is marked incomplete/failed and cannot
-   produce final metrics. Collect a complete run to a fresh `--out` path after
-   fixing the failure. Do not overwrite old evidence or reuse partial text outputs.
+   produce final metrics. After fixing a failure, run the command again: the
+   failed export is archived, and every query is searched afresh.
 
    The export records settings without API credentials, the index manifest,
    catalogue fingerprint, query snapshot, model identity, per-stage timings,
@@ -145,11 +162,14 @@ rebuild them. Keep previous evaluation directories when repeating an experiment.
    reproducibility. A Git revision alone does not describe uncommitted changes;
    preserve the actual source files used in the experiment too.
 
-3. Copy `run.json`, `queries.json`, and `protocol.json` back to this workspace.
+2. Copy `eval/reranker/run.json` back to this workspace. It embeds its query
+   snapshot and protocol, so this export is sufficient for offline assessment.
+   Keep the generated standalone snapshots and the history directory too if you
+   want a complete archive of your experiments.
    No models, vector indexes, or catalogue database need to be transferred for
    assessment: `run.json` includes the relevant books' full recorded metadata.
 
-4. Build the shuffled assessment sheet offline:
+3. Build the shuffled assessment sheet offline:
 
    ```powershell
    python reranker_evaluation.py pool
@@ -161,14 +181,17 @@ rebuild them. Keep previous evaluation directories when repeating an experiment.
    queries; overlap usually reduces this. The sheet contains no ranks, system
    labels, reranker scores, or generated enrichment. Assessment should use this
    sheet, keeping the rankings in `run.json` out of the grading process.
+   If an earlier assessment sheet exists on the receiving PC, keep it and choose
+   a new sheet path with `--out`; then pass that path using `--assessment` for
+   `check` and `score`. Existing assessment sheets are never silently overwritten.
 
-5. Give the assistant access to **`assessment.json`** and ask it to fill the draft
+4. Give the assistant access to **`assessment.json`** and ask it to fill the draft
    judgments according to this document. It must read the metadata for each pair,
    use the confirmed `intent`/`guidance`, add exact field excerpts, and write
    `assessor_type: "assistant"` and `human_reviewed: false`. The `pool` and `score`
    commands do not invent grades or ask the search model to judge its own results.
 
-6. Review the assistant's grades and evidence. For every accepted or corrected
+5. Review the assistant's grades and evidence. For every accepted or corrected
    judgment, set `human_reviewed: true` and `reviewer` to your name/identifier.
    If you change a grade, update its reason and supporting excerpts too. Keep
    metadata, query IDs, book IDs, and provenance hashes unchanged.
@@ -189,7 +212,7 @@ rebuild them. Keep previous evaluation directories when repeating an experiment.
    }
    ```
 
-7. Validate progress and compute the final report offline:
+6. Validate progress and compute the final report offline:
 
    ```powershell
    python reranker_evaluation.py check
@@ -202,6 +225,16 @@ rebuild them. Keep previous evaluation directories when repeating an experiment.
    unreviewed assistant grades. An explicit `score --allow-partial` produces a
    **provisional subset report**, excluding unfinished queries instead of treating
    their books as irrelevant. It does not waive the human-review requirement.
+
+The offline commands use the embedded protocol, or the standalone protocol beside
+`run.json` when it belongs to that same run. To apply confirmed interpretation or
+settings changes from another file, explicitly pass `--protocol path/to/protocol.json`.
+Changing a protocol after drafting judgments invalidates the old assessment hashes;
+confirm query intents before building the assessment sheet.
+
+`python reranker_evaluation.py prepare` remains available as an optional offline
+preflight for inspecting queries and configuring decisions before a run. It refuses
+to overwrite existing snapshots. It is not required to refresh the query list.
 
 **Metrics and interpretation**
 

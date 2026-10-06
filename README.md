@@ -70,6 +70,8 @@ For the 30 queries in `queries.txt`, use the paired, graded evaluation workflow 
 [RERANKER_EVALUATION.md](RERANKER_EVALUATION.md). It exports original catalogue
 evidence on the search PC and computes NDCG@10, Precision@10, MRR@10, and paired
 confidence intervals offline after human review of assistant draft judgments.
+`python reranker_evaluation.py run` starts fresh from the current `queries.txt`,
+archives the previous evaluation, and creates its snapshots automatically.
 The commands below remain available for the older binary/legacy evaluation.
 
 Do not download models or rebuild indexes on a development-only machine. On the target
