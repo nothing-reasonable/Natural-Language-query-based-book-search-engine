@@ -11,3 +11,9 @@ venv/
 *.log
 *.py.bak
 *.zip
+# Offline evaluation evidence/results are kept locally; commit the protocol and query snapshot.
+eval/reranker/run*.json
+eval/reranker/assessment*.json
+eval/reranker/report*.json
+eval/reranker/report*.csv
+eval/reranker/report*.md

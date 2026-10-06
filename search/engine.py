@@ -230,6 +230,13 @@ class SearchEngine:
         # `ranked` is reassigned by personalisation below; both traces want the ordering
         # the relevance signals produced, so hold on to it here.
         blended = ranked
+        ablation = []
+        if options.compare_rerank:
+            # Preserve fusion, graph, quality, popularity, availability, and tie breaking.
+            # Removing only the semantic contribution isolates its effect in the blend.
+            ablation = [item[0].book_id for item in final_scores(
+                shortlist, self.records, [0.0] * len(shortlist), self.settings
+            )]
         rerank_trace = (self._rerank_trace(
             plan.normalized_query, rerank_records, semantic, ranked,
             backend=rerank_backend, fallback=rerank_fallback,
@@ -267,6 +274,7 @@ class SearchEngine:
             rerank_backend=rerank_backend,
             rerank_fallback=rerank_fallback,
             index_generation=self.index_generation,
+            rerank_ablation=ablation,
         )
 
     def _rerank_trace(self, normalized_query: str, records: list[IndexedBook],

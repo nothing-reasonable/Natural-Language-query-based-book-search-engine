@@ -1,0 +1,3170 @@
+{
+  "schema_version": 1,
+  "source": {
+    "file": "books_metadata_cleaned.csv",
+    "book_count": 10170,
+    "sha256": "f8a4fe48ad755002c8ca14cf761ee068c3f2042841f0b648181c7897c5d815f4",
+    "fields_used": [
+      "Book Name",
+      "Description (Flap)"
+    ],
+    "record_numbering": "1-based data records, excluding the header"
+  },
+  "method": "Manually curated subjects, forms and audiences; source-matched examples. Evidence matches are lexical hints, not complete book classifications.",
+  "category_count": 74,
+  "groups": [
+    {
+      "id": "liberation",
+      "label_bn": "মুক্তিযুদ্ধ",
+      "label_en": "Bangladesh Liberation War"
+    },
+    {
+      "id": "history",
+      "label_bn": "ইতিহাস ও ঐতিহ্য",
+      "label_en": "History and heritage"
+    },
+    {
+      "id": "politics",
+      "label_bn": "রাজনীতি ও রাষ্ট্র",
+      "label_en": "Politics and government"
+    },
+    {
+      "id": "society",
+      "label_bn": "সমাজ ও সংস্কৃতি",
+      "label_en": "Society and culture"
+    },
+    {
+      "id": "religion",
+      "label_bn": "ধর্ম ও ইসলামি অধ্যয়ন",
+      "label_en": "Religion and Islamic studies"
+    },
+    {
+      "id": "literature",
+      "label_bn": "ভাষা ও সাহিত্য",
+      "label_en": "Language and literature"
+    },
+    {
+      "id": "arts",
+      "label_bn": "শিল্প ও বিনোদন",
+      "label_en": "Arts and entertainment"
+    },
+    {
+      "id": "travel",
+      "label_bn": "ভ্রমণ ও প্রবাস",
+      "label_en": "Travel and migration"
+    },
+    {
+      "id": "business",
+      "label_bn": "অর্থনীতি ও ব্যবসা",
+      "label_en": "Economics and business"
+    },
+    {
+      "id": "knowledge",
+      "label_bn": "জ্ঞান, শিক্ষা ও জীবন",
+      "label_en": "Knowledge, education and life"
+    },
+    {
+      "id": "formats",
+      "label_bn": "বইয়ের ধরন",
+      "label_en": "Book forms"
+    },
+    {
+      "id": "audiences",
+      "label_bn": "পাঠকগোষ্ঠী",
+      "label_en": "Audiences"
+    }
+  ],
+  "categories": [
+    {
+      "id": "liberation_war",
+      "facet": "subject",
+      "group_id": "liberation",
+      "label_bn": "মুক্তিযুদ্ধের ইতিহাস",
+      "label_en": "Liberation War history",
+      "description": "The origins, course and aftermath of Bangladesh's 1971 independence war.",
+      "aliases": [
+        "মুক্তিযুদ্ধ",
+        "একাত্তর",
+        "বাংলাদেশের স্বাধীনতা যুদ্ধ",
+        "1971 liberation war",
+        "muktijuddho"
+      ],
+      "evidence_terms": [
+        "মুক্তিযুদ্ধ",
+        "একাত্তর",
+        "স্বাধীনতা যুদ্ধ"
+      ],
+      "example_queries": {
+        "bn": "বাংলাদেশের মুক্তিযুদ্ধের পটভূমি নিয়ে বই",
+        "en": "Books about the origins of Bangladesh's Liberation War"
+      },
+      "embedding_text": "মুক্তিযুদ্ধের ইতিহাস. Liberation War history. The origins, course and aftermath of Bangladesh's 1971 independence war. Keywords: মুক্তিযুদ্ধ, একাত্তর, বাংলাদেশের স্বাধীনতা যুদ্ধ, 1971 liberation war, muktijuddho.",
+      "title_evidence_book_count": 1141,
+      "representative_books": [
+        {
+          "source_record": 1,
+          "title": "বাংলাদেশের স্বাধীনতা যুদ্ধ ও গণহত্যার ইতিহাস",
+          "author": "লেফটেন্যান্ট ইমরান আহমেদ চৌধুরী বিইএম",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 2192,
+          "title": "বাংলাদেশের স্বাধীনতা যুদ্ধের আড়ালে যুদ্ধ",
+          "author": "অধ্যাপক আবু সাইয়িদ",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "war_campaigns",
+      "facet": "subject",
+      "group_id": "liberation",
+      "label_bn": "রণাঙ্গন ও গেরিলা যুদ্ধ",
+      "label_en": "Military campaigns and guerrilla warfare",
+      "description": "Battlefields, military operations, sectors, commanders and guerrilla resistance in 1971.",
+      "aliases": [
+        "রণাঙ্গন",
+        "গেরিলা",
+        "মুক্তিবাহিনী",
+        "সেক্টর কমান্ডার",
+        "guerrilla warfare",
+        "battlefield"
+      ],
+      "evidence_terms": [
+        "রণাঙ্গন",
+        "গেরিলা",
+        "সেক্টর কমান্ডার"
+      ],
+      "example_queries": {
+        "bn": "একাত্তরের গেরিলা অভিযান ও সেক্টর কমান্ডারদের নিয়ে বই",
+        "en": "Books about guerrilla operations and sector commanders in 1971"
+      },
+      "embedding_text": "রণাঙ্গন ও গেরিলা যুদ্ধ. Military campaigns and guerrilla warfare. Battlefields, military operations, sectors, commanders and guerrilla resistance in 1971. Keywords: রণাঙ্গন, গেরিলা, মুক্তিবাহিনী, সেক্টর কমান্ডার, guerrilla warfare, battlefield.",
+      "title_evidence_book_count": 53,
+      "representative_books": [
+        {
+          "source_record": 274,
+          "title": "একাত্তরের মুক্তিযুদ্ধ : একজন সেক্টর কমান্ডারের স্মৃতিকথা",
+          "author": "কর্নেল (অব.) কাজী নূর-উজ্জামান",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 440,
+          "title": "সেক্টর কমান্ডার",
+          "author": "শাহজাহান সাজু",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "war_atrocities",
+      "facet": "subject",
+      "group_id": "liberation",
+      "label_bn": "গণহত্যা ও যুদ্ধাপরাধ",
+      "label_en": "Genocide and war crimes",
+      "description": "Mass killings, torture, killing sites, collaborators and accountability, especially in 1971.",
+      "aliases": [
+        "গণহত্যা",
+        "বধ্যভূমি",
+        "যুদ্ধাপরাধ",
+        "রাজাকার",
+        "genocide",
+        "war crimes"
+      ],
+      "evidence_terms": [
+        "গণহত্যা",
+        "বধ্যভূমি",
+        "যুদ্ধাপরাধ"
+      ],
+      "example_queries": {
+        "bn": "একাত্তরের গণহত্যা ও যুদ্ধাপরাধের বিচার নিয়ে বই",
+        "en": "Books about the 1971 genocide and war crimes trials"
+      },
+      "embedding_text": "গণহত্যা ও যুদ্ধাপরাধ. Genocide and war crimes. Mass killings, torture, killing sites, collaborators and accountability, especially in 1971. Keywords: গণহত্যা, বধ্যভূমি, যুদ্ধাপরাধ, রাজাকার, genocide, war crimes.",
+      "title_evidence_book_count": 74,
+      "representative_books": [
+        {
+          "source_record": 157,
+          "title": "একাত্তরের গণহত্যা, নির্যাতন ও যুদ্ধাপরাধীদের বিচার",
+          "author": "শাহরিয়ার কবির",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 301,
+          "title": "যুদ্ধাপরাধ দেশে দেশে",
+          "author": "ঊর্মি রহমান",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "war_refugees",
+      "facet": "subject",
+      "group_id": "liberation",
+      "label_bn": "যুদ্ধকালীন শরণার্থী ও বাস্তুচ্যুতি",
+      "label_en": "Wartime refugees and displacement",
+      "description": "Refugee camps, flight, exile and civilian displacement during the Liberation War.",
+      "aliases": [
+        "শরণার্থী",
+        "শরণার্থী শিবির",
+        "উদ্বাস্তু",
+        "refugee camps",
+        "wartime displacement"
+      ],
+      "evidence_terms": [
+        "শরণার্থী শিবির",
+        "শরণার্থী জীবনের",
+        "শরণার্থী"
+      ],
+      "example_queries": {
+        "bn": "মুক্তিযুদ্ধের সময় শরণার্থী শিবিরের জীবন কেমন ছিল",
+        "en": "Books about life in refugee camps during the Liberation War"
+      },
+      "embedding_text": "যুদ্ধকালীন শরণার্থী ও বাস্তুচ্যুতি. Wartime refugees and displacement. Refugee camps, flight, exile and civilian displacement during the Liberation War. Keywords: শরণার্থী, শরণার্থী শিবির, উদ্বাস্তু, refugee camps, wartime displacement.",
+      "title_evidence_book_count": 11,
+      "representative_books": [
+        {
+          "source_record": 530,
+          "title": "১৯৭১ শরণার্থী জীবনের স্মৃতি",
+          "author": "প্রফেসর ননী গোপাল সরকার",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 1148,
+          "title": "শরণার্থী শিবির থেকে সম্মুখ যুদ্ধে",
+          "author": "মোজাম্মেল হক নিয়োগী",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "war_women",
+      "facet": "subject",
+      "group_id": "liberation",
+      "label_bn": "মুক্তিযুদ্ধে নারী ও বীরাঙ্গনা",
+      "label_en": "Women in the Liberation War",
+      "description": "Women fighters, survivors, wartime sexual violence and women's experiences of 1971.",
+      "aliases": [
+        "বীরাঙ্গনা",
+        "নারী মুক্তিযোদ্ধা",
+        "মুক্তিযুদ্ধে নারী",
+        "women freedom fighters",
+        "wartime survivors"
+      ],
+      "evidence_terms": [
+        "বীরাঙ্গনা",
+        "নারী মুক্তিযোদ্ধা",
+        "মুক্তিযুদ্ধে নারী"
+      ],
+      "example_queries": {
+        "bn": "নারী মুক্তিযোদ্ধা ও বীরাঙ্গনাদের অভিজ্ঞতা নিয়ে বই",
+        "en": "Books about women freedom fighters and survivors of 1971"
+      },
+      "embedding_text": "মুক্তিযুদ্ধে নারী ও বীরাঙ্গনা. Women in the Liberation War. Women fighters, survivors, wartime sexual violence and women's experiences of 1971. Keywords: বীরাঙ্গনা, নারী মুক্তিযোদ্ধা, মুক্তিযুদ্ধে নারী, women freedom fighters, wartime survivors.",
+      "title_evidence_book_count": 35,
+      "representative_books": [
+        {
+          "source_record": 195,
+          "title": "গেরিলা নারী : নারী মুক্তিযোদ্ধাদের স্মৃতিকথা",
+          "author": "বিচারপতি মুহাম্মদ হাবিবুর রহমান",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 3267,
+          "title": "মুক্তিযুদ্ধে নারীর ভূমিকা",
+          "author": "শাহনাজ পারভীন (নাট্যকার)",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "war_documents",
+      "facet": "subject",
+      "group_id": "liberation",
+      "label_bn": "মুক্তিযুদ্ধের দলিল ও আন্তর্জাতিক প্রতিক্রিয়া",
+      "label_en": "War documents and international responses",
+      "description": "Primary documents, diplomatic records and foreign reactions concerning Bangladesh's independence war.",
+      "aliases": [
+        "মুক্তিযুদ্ধের দলিল",
+        "গোপন দলিল",
+        "আন্তর্জাতিক প্রতিক্রিয়া",
+        "liberation war documents",
+        "declassified records"
+      ],
+      "evidence_terms": [
+        "মুক্তিযুদ্ধের দলিল",
+        "মুক্তিযুদ্ধের দলিলপত্র",
+        "মুক্তিযুদ্ধে মার্কিন",
+        "মুক্তিযুদ্ধে আন্তর্জাতিক"
+      ],
+      "example_queries": {
+        "bn": "বিদেশি দলিলে বাংলাদেশের মুক্তিযুদ্ধ সম্পর্কে কী আছে",
+        "en": "Books on foreign records and international responses to the Liberation War"
+      },
+      "embedding_text": "মুক্তিযুদ্ধের দলিল ও আন্তর্জাতিক প্রতিক্রিয়া. War documents and international responses. Primary documents, diplomatic records and foreign reactions concerning Bangladesh's independence war. Keywords: মুক্তিযুদ্ধের দলিল, গোপন দলিল, আন্তর্জাতিক প্রতিক্রিয়া, liberation war documents, declassified records.",
+      "title_evidence_book_count": 3,
+      "representative_books": [
+        {
+          "source_record": 312,
+          "title": "মুক্তিযুদ্ধের দলিলপত্র : ফরিদপুর",
+          "author": "আবু সাঈদ খান",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 134,
+          "title": "বাংলাদেশের মুক্তিযুদ্ধে মার্কিন ভূমিকার গোপন দলিল",
+          "author": "আসিফ রশীদ",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "war_media",
+      "facet": "subject",
+      "group_id": "liberation",
+      "label_bn": "মুক্তিযুদ্ধের বেতার ও সাংস্কৃতিক প্রতিরোধ",
+      "label_en": "Wartime broadcasting and cultural resistance",
+      "description": "Swadhin Bangla Betar Kendra, wartime songs and cultural mobilisation for independence.",
+      "aliases": [
+        "স্বাধীন বাংলা বেতার",
+        "মুক্তিযুদ্ধের গান",
+        "সাংস্কৃতিক প্রতিরোধ",
+        "wartime radio",
+        "cultural resistance"
+      ],
+      "evidence_terms": [
+        "স্বাধীন বাংলা বেতার",
+        "গণসঙ্গীত ও মুক্তিযুদ্ধ"
+      ],
+      "example_queries": {
+        "bn": "স্বাধীন বাংলা বেতার কেন্দ্রের ভূমিকা নিয়ে বই",
+        "en": "Books about the role of Swadhin Bangla Betar Kendra"
+      },
+      "embedding_text": "মুক্তিযুদ্ধের বেতার ও সাংস্কৃতিক প্রতিরোধ. Wartime broadcasting and cultural resistance. Swadhin Bangla Betar Kendra, wartime songs and cultural mobilisation for independence. Keywords: স্বাধীন বাংলা বেতার, মুক্তিযুদ্ধের গান, সাংস্কৃতিক প্রতিরোধ, wartime radio, cultural resistance.",
+      "title_evidence_book_count": 8,
+      "representative_books": [
+        {
+          "source_record": 526,
+          "title": "গণসঙ্গীত ও মুক্তিযুদ্ধ",
+          "author": "ফকির আলমগীর",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 6860,
+          "title": "স্বাধীন বাংলা বেতারের গান",
+          "author": "রফিকুল আলম",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "national_history",
+      "facet": "subject",
+      "group_id": "history",
+      "label_bn": "বাংলাদেশ ও বাংলার ইতিহাস",
+      "label_en": "History of Bangladesh and Bengal",
+      "description": "The historical development of Bengal, Bengali identity and Bangladesh across periods.",
+      "aliases": [
+        "বাংলার ইতিহাস",
+        "বাংলাদেশের ইতিহাস",
+        "বাঙালির ইতিহাস",
+        "Bengal history",
+        "Bangladesh history"
+      ],
+      "evidence_terms": [
+        "বাংলার ইতিহাস",
+        "বাংলাদেশের ইতিহাস",
+        "বাঙালির ইতিহাস"
+      ],
+      "example_queries": {
+        "bn": "বাঙালি জাতির পরিচয় ও বাংলাদেশের ইতিহাস নিয়ে বই",
+        "en": "Books about Bengali identity and the history of Bangladesh"
+      },
+      "embedding_text": "বাংলাদেশ ও বাংলার ইতিহাস. History of Bangladesh and Bengal. The historical development of Bengal, Bengali identity and Bangladesh across periods. Keywords: বাংলার ইতিহাস, বাংলাদেশের ইতিহাস, বাঙালির ইতিহাস, Bengal history, Bangladesh history.",
+      "title_evidence_book_count": 42,
+      "representative_books": [
+        {
+          "source_record": 2788,
+          "title": "বাংলাদেশের ইতিহাসের রূপরেখা",
+          "author": "আশফাক হোসেন",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 3637,
+          "title": "বাংলাদেশের ইতিহাসের গোড়ার কথা",
+          "author": "মোহাম্মদ মোশাররফ হোসেন",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "local_history",
+      "facet": "subject",
+      "group_id": "history",
+      "label_bn": "আঞ্চলিক ও নগর ইতিহাস",
+      "label_en": "Regional and urban history",
+      "description": "The histories of districts, towns, cities and local communities, including Dhaka.",
+      "aliases": [
+        "জেলার ইতিহাস",
+        "ঢাকার ইতিহাস",
+        "আঞ্চলিক ইতিহাস",
+        "local history",
+        "urban history"
+      ],
+      "evidence_terms": [
+        "ঢাকার ইতিহাস",
+        "চট্টগ্রামের ইতিহাস",
+        "ফরিদপুরের ইতিহাস",
+        "আঞ্চলিক ইতিহাস"
+      ],
+      "example_queries": {
+        "bn": "পুরনো ঢাকার সমাজ ও নগরজীবন নিয়ে বই",
+        "en": "Books about old Dhaka's society and urban life"
+      },
+      "embedding_text": "আঞ্চলিক ও নগর ইতিহাস. Regional and urban history. The histories of districts, towns, cities and local communities, including Dhaka. Keywords: জেলার ইতিহাস, ঢাকার ইতিহাস, আঞ্চলিক ইতিহাস, local history, urban history.",
+      "title_evidence_book_count": 15,
+      "representative_books": [
+        {
+          "source_record": 2563,
+          "title": "ঢাকার ইতিহাস",
+          "author": "শ্রীকেদারনাথ মজুমদার",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 2272,
+          "title": "চট্টগ্রামের ইতিহাস",
+          "author": "কমল চৌধুরী",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "ancient_civilizations",
+      "facet": "subject",
+      "group_id": "history",
+      "label_bn": "প্রাচীন ইতিহাস ও সভ্যতা",
+      "label_en": "Ancient history and civilizations",
+      "description": "Ancient societies and civilizations, including Egypt, Greece, Rome and the Indus region.",
+      "aliases": [
+        "প্রাচীন সভ্যতা",
+        "মিশরীয় সভ্যতা",
+        "সিন্ধু সভ্যতা",
+        "ancient civilizations",
+        "ancient history"
+      ],
+      "evidence_terms": [
+        "প্রাচীন",
+        "মিশরীয় সভ্যতা",
+        "সিন্ধু সভ্যতা",
+        "রোমান সাম্রাজ্য"
+      ],
+      "example_queries": {
+        "bn": "প্রাচীন মিশর ও সিন্ধু সভ্যতা সম্পর্কে বই",
+        "en": "Books about ancient Egypt and the Indus civilization"
+      },
+      "embedding_text": "প্রাচীন ইতিহাস ও সভ্যতা. Ancient history and civilizations. Ancient societies and civilizations, including Egypt, Greece, Rome and the Indus region. Keywords: প্রাচীন সভ্যতা, মিশরীয় সভ্যতা, সিন্ধু সভ্যতা, ancient civilizations, ancient history.",
+      "title_evidence_book_count": 99,
+      "representative_books": [
+        {
+          "source_record": 2729,
+          "title": "রোমান সাম্রাজ্য",
+          "author": "সাহাদত হোসেন খান",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 2896,
+          "title": "মিশরীয় সভ্যতা",
+          "author": "ড. এ কে এম শাহনাওয়াজ",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "archaeology_architecture",
+      "facet": "subject",
+      "group_id": "history",
+      "label_bn": "প্রত্নতত্ত্ব ও স্থাপত্য ঐতিহ্য",
+      "label_en": "Archaeology and architectural heritage",
+      "description": "Archaeological sites, material remains, historical buildings, temples and mosques.",
+      "aliases": [
+        "প্রত্নতত্ত্ব",
+        "প্রত্নস্থাপত্য",
+        "পুরাকীর্তি",
+        "স্থাপত্য",
+        "archaeology",
+        "architectural heritage"
+      ],
+      "evidence_terms": [
+        "প্রত্নতাত্ত্বিক",
+        "প্রত্ন স্থাপত্য",
+        "স্থাপত্য",
+        "প্রত্নতত্ত্ব"
+      ],
+      "example_queries": {
+        "bn": "বাংলার প্রাচীন মন্দির ও মসজিদের স্থাপত্য নিয়ে বই",
+        "en": "Books about the architecture of Bengal's old temples and mosques"
+      },
+      "embedding_text": "প্রত্নতত্ত্ব ও স্থাপত্য ঐতিহ্য. Archaeology and architectural heritage. Archaeological sites, material remains, historical buildings, temples and mosques. Keywords: প্রত্নতত্ত্ব, প্রত্নস্থাপত্য, পুরাকীর্তি, স্থাপত্য, archaeology, architectural heritage.",
+      "title_evidence_book_count": 11,
+      "representative_books": [
+        {
+          "source_record": 2952,
+          "title": "বাংলাদেশের প্রত্ন স্থাপত্য",
+          "author": "নওশের আলী হিরা",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 2777,
+          "title": "বাংলাদেশের প্রত্নতাত্ত্বিক নিদর্শন",
+          "author": "ড. মাযহারুল ইসলাম তরু",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "medieval_empires",
+      "facet": "subject",
+      "group_id": "history",
+      "label_bn": "মধ্যযুগ, সুলতানি ও মুঘল ইতিহাস",
+      "label_en": "Medieval kingdoms and empires",
+      "description": "Medieval dynasties, sultanates, Mughal rule and other historical empires.",
+      "aliases": [
+        "মধ্যযুগ",
+        "সুলতানি আমল",
+        "মুঘল",
+        "খিলাফত",
+        "medieval history",
+        "Mughal empire",
+        "sultanate"
+      ],
+      "evidence_terms": [
+        "মধ্যযুগ",
+        "মুঘল",
+        "সুলতান",
+        "খিলাফত"
+      ],
+      "example_queries": {
+        "bn": "বাংলায় সুলতানি ও মুঘল শাসন নিয়ে বই",
+        "en": "Books about the sultanates and Mughal rule in Bengal"
+      },
+      "embedding_text": "মধ্যযুগ, সুলতানি ও মুঘল ইতিহাস. Medieval kingdoms and empires. Medieval dynasties, sultanates, Mughal rule and other historical empires. Keywords: মধ্যযুগ, সুলতানি আমল, মুঘল, খিলাফত, medieval history, Mughal empire, sultanate.",
+      "title_evidence_book_count": 65,
+      "representative_books": [
+        {
+          "source_record": 2666,
+          "title": "মুঘল ভারতের ইতিহাস",
+          "author": "ড. মোহাম্মদ ছিদ্দিকুর রহমান খান",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 2526,
+          "title": "মধ্যযুগের বাংলা : সমাজ ও সংস্কৃতি",
+          "author": "ড. এমরান জাহান",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "colonial_history",
+      "facet": "subject",
+      "group_id": "history",
+      "label_bn": "ঔপনিবেশিক শাসন ও প্রতিরোধ",
+      "label_en": "Colonial rule and anticolonial resistance",
+      "description": "British rule, the East India Company, colonial institutions and resistance movements.",
+      "aliases": [
+        "ব্রিটিশ শাসন",
+        "ঔপনিবেশিকতা",
+        "ইস্ট ইন্ডিয়া কোম্পানি",
+        "নীলবিদ্রোহ",
+        "British Raj",
+        "anticolonial resistance"
+      ],
+      "evidence_terms": [
+        "ব্রিটিশ",
+        "ঔপনিবেশিক",
+        "ইস্ট ইন্ডিয়া কোম্পানি",
+        "নীলবিদ্রোহ"
+      ],
+      "example_queries": {
+        "bn": "ব্রিটিশ আমলে বাংলার কৃষক বিদ্রোহ নিয়ে বই",
+        "en": "Books about peasant resistance in colonial Bengal"
+      },
+      "embedding_text": "ঔপনিবেশিক শাসন ও প্রতিরোধ. Colonial rule and anticolonial resistance. British rule, the East India Company, colonial institutions and resistance movements. Keywords: ব্রিটিশ শাসন, ঔপনিবেশিকতা, ইস্ট ইন্ডিয়া কোম্পানি, নীলবিদ্রোহ, British Raj, anticolonial resistance.",
+      "title_evidence_book_count": 21,
+      "representative_books": [
+        {
+          "source_record": 4490,
+          "title": "ইস্ট ইন্ডিয়া কোম্পানির অর্থনৈতিক ইতিহাস : ভারত উপমহাদেশ",
+          "author": "তীর্থংকর রায়",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 4056,
+          "title": "নীলবিদ্রোহের অজানা ইতিহাস",
+          "author": "মহসিন হোসাইন",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "bengal_partition",
+      "facet": "subject",
+      "group_id": "history",
+      "label_bn": "বঙ্গভঙ্গ ও স্বদেশী আন্দোলন",
+      "label_en": "Partition of Bengal and the Swadeshi movement",
+      "description": "The 1905 partition of Bengal, its political context and related resistance.",
+      "aliases": [
+        "বঙ্গভঙ্গ",
+        "১৯০৫",
+        "স্বদেশী আন্দোলন",
+        "partition of Bengal",
+        "Swadeshi movement"
+      ],
+      "evidence_terms": [
+        "বঙ্গভঙ্গ",
+        "স্বদেশী আন্দোলন"
+      ],
+      "example_queries": {
+        "bn": "১৯০৫ সালের বঙ্গভঙ্গ ও স্বদেশী আন্দোলন নিয়ে বই",
+        "en": "Books about the 1905 partition of Bengal and the Swadeshi movement"
+      },
+      "embedding_text": "বঙ্গভঙ্গ ও স্বদেশী আন্দোলন. Partition of Bengal and the Swadeshi movement. The 1905 partition of Bengal, its political context and related resistance. Keywords: বঙ্গভঙ্গ, ১৯০৫, স্বদেশী আন্দোলন, partition of Bengal, Swadeshi movement.",
+      "title_evidence_book_count": 6,
+      "representative_books": [
+        {
+          "source_record": 4013,
+          "title": "বঙ্গভঙ্গ ও তৎকাল",
+          "author": "গোলাম মুস্তাফা",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 2752,
+          "title": "বঙ্গভঙ্গ ও বাঙালির ঐক্য?",
+          "author": "ড. মোঃ মকসুদুর রহমান",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "india_partition",
+      "facet": "subject",
+      "group_id": "history",
+      "label_bn": "দেশভাগ ও সাম্প্রদায়িকতা",
+      "label_en": "Partition of India and communalism",
+      "description": "The 1947 partition, communal conflict, divided communities and its human consequences.",
+      "aliases": [
+        "দেশভাগ",
+        "সাতচল্লিশ",
+        "সাম্প্রদায়িকতা",
+        "দাঙ্গা",
+        "partition of India",
+        "communal violence"
+      ],
+      "evidence_terms": [
+        "দেশভাগ",
+        "সাতচল্লিশ",
+        "সাম্প্রদায়িক",
+        "সাম্প্রদায়িক"
+      ],
+      "example_queries": {
+        "bn": "দেশভাগে সাধারণ মানুষের জীবন কীভাবে বদলে গেল",
+        "en": "Books about how Partition changed ordinary people's lives"
+      },
+      "embedding_text": "দেশভাগ ও সাম্প্রদায়িকতা. Partition of India and communalism. The 1947 partition, communal conflict, divided communities and its human consequences. Keywords: দেশভাগ, সাতচল্লিশ, সাম্প্রদায়িকতা, দাঙ্গা, partition of India, communal violence.",
+      "title_evidence_book_count": 16,
+      "representative_books": [
+        {
+          "source_record": 2393,
+          "title": "সাতচল্লিশের দেশভাগে গান্ধী ও জিন্নাহ",
+          "author": "সিরাজুল ইসলাম চৌধুরী",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 2330,
+          "title": "জিন্না: ভারত দেশভাগ স্বাধীনতা",
+          "author": "যশোবন্ত সিংহ",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "world_history",
+      "facet": "subject",
+      "group_id": "history",
+      "label_bn": "বিশ্ব ইতিহাস ও বিশ্বযুদ্ধ",
+      "label_en": "World history and world wars",
+      "description": "Histories of other countries, global conflicts and major international historical developments.",
+      "aliases": [
+        "বিশ্ব ইতিহাস",
+        "বিশ্বযুদ্ধ",
+        "বিশ্বসভ্যতা",
+        "world history",
+        "world wars"
+      ],
+      "evidence_terms": [
+        "বিশ্ব ইতিহাস",
+        "বিশ্বযুদ্ধ",
+        "জার্মানির ইতিহাস",
+        "চীনের ইতিহাস"
+      ],
+      "example_queries": {
+        "bn": "দ্বিতীয় বিশ্বযুদ্ধ ও ইউরোপের ইতিহাস নিয়ে বই",
+        "en": "Books about World War II and European history"
+      },
+      "embedding_text": "বিশ্ব ইতিহাস ও বিশ্বযুদ্ধ. World history and world wars. Histories of other countries, global conflicts and major international historical developments. Keywords: বিশ্ব ইতিহাস, বিশ্বযুদ্ধ, বিশ্বসভ্যতা, world history, world wars.",
+      "title_evidence_book_count": 12,
+      "representative_books": [
+        {
+          "source_record": 2329,
+          "title": "বিশ্ব ইতিহাস প্রসঙ্গ",
+          "author": "জওহরলাল নেহেরু",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 2466,
+          "title": "দ্বিতীয় বিশ্বযুদ্ধের আড়ালে",
+          "author": "শাহরীয়ার শরীফ",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "language_movement",
+      "facet": "subject",
+      "group_id": "politics",
+      "label_bn": "ভাষা আন্দোলন",
+      "label_en": "Bengali Language Movement",
+      "description": "The struggle for Bengali language rights, 1952 and regional language movements.",
+      "aliases": [
+        "ভাষা আন্দোলন",
+        "রাষ্ট্রভাষা",
+        "বায়ান্ন",
+        "একুশে ফেব্রুয়ারি",
+        "language movement",
+        "language rights"
+      ],
+      "evidence_terms": [
+        "ভাষা আন্দোলন",
+        "রাষ্ট্রভাষা",
+        "বায়ান্ন",
+        "বায়ান্ন"
+      ],
+      "example_queries": {
+        "bn": "বিভিন্ন জেলায় ভাষা আন্দোলনের ইতিহাস নিয়ে বই",
+        "en": "Books about the Language Movement in different districts"
+      },
+      "embedding_text": "ভাষা আন্দোলন. Bengali Language Movement. The struggle for Bengali language rights, 1952 and regional language movements. Keywords: ভাষা আন্দোলন, রাষ্ট্রভাষা, বায়ান্ন, একুশে ফেব্রুয়ারি, language movement, language rights.",
+      "title_evidence_book_count": 118,
+      "representative_books": [
+        {
+          "source_record": 3656,
+          "title": "ভাষা আন্দোলনের কথা",
+          "author": "ড. গুলশান আরা",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 4887,
+          "title": "ভাষা আন্দোলনের বীর",
+          "author": "অপরেশ বন্দ্যোপাধ্যায়",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "pakistan_politics",
+      "facet": "subject",
+      "group_id": "politics",
+      "label_bn": "পাকিস্তান আমলের রাজনীতি",
+      "label_en": "Politics in the Pakistan period",
+      "description": "East Pakistan politics, the Six Points, autonomy movements and political conflict before independence.",
+      "aliases": [
+        "পূর্ব পাকিস্তান",
+        "ছয় দফা",
+        "আগরতলা মামলা",
+        "আইয়ুব",
+        "East Pakistan politics",
+        "six point movement"
+      ],
+      "evidence_terms": [
+        "পূর্ব পাকিস্তান",
+        "ছয় দফা",
+        "ছয় দফা",
+        "আগরতলা",
+        "আইয়ুব",
+        "আইয়ুব"
+      ],
+      "example_queries": {
+        "bn": "ছয় দফা আন্দোলন ও পূর্ব পাকিস্তানের রাজনীতি নিয়ে বই",
+        "en": "Books about the Six Points and politics in East Pakistan"
+      },
+      "embedding_text": "পাকিস্তান আমলের রাজনীতি. Politics in the Pakistan period. East Pakistan politics, the Six Points, autonomy movements and political conflict before independence. Keywords: পূর্ব পাকিস্তান, ছয় দফা, আগরতলা মামলা, আইয়ুব, East Pakistan politics, six point movement.",
+      "title_evidence_book_count": 17,
+      "representative_books": [
+        {
+          "source_record": 2615,
+          "title": "পূর্ব পাকিস্তানের জন্ম থেকে মৃত্যু",
+          "author": "জিবলু রহমান",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 2754,
+          "title": "বাঙলাদেশের অভ্যুদয় : পূর্ব পাকিস্তানের ইতিহাস (১৯৪৭-১৯৫৮)",
+          "author": "বদরুদ্দীন উমর",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "bangladesh_politics",
+      "facet": "subject",
+      "group_id": "politics",
+      "label_bn": "স্বাধীন বাংলাদেশের রাজনীতি",
+      "label_en": "Politics of independent Bangladesh",
+      "description": "Political parties, leadership, changes of government and political crises after independence.",
+      "aliases": [
+        "বাংলাদেশের রাজনীতি",
+        "আওয়ামী লীগ",
+        "বিএনপি",
+        "পঁচাত্তর",
+        "Bangladesh politics",
+        "post-independence politics"
+      ],
+      "evidence_terms": [
+        "বাংলাদেশের রাজনীতি",
+        "আওয়ামী",
+        "আওয়ামী",
+        "বিএনপি",
+        "পঁচাত্তর"
+      ],
+      "example_queries": {
+        "bn": "স্বাধীনতার পর বাংলাদেশের রাজনৈতিক পরিবর্তন নিয়ে বই",
+        "en": "Books about political change in Bangladesh after independence"
+      },
+      "embedding_text": "স্বাধীন বাংলাদেশের রাজনীতি. Politics of independent Bangladesh. Political parties, leadership, changes of government and political crises after independence. Keywords: বাংলাদেশের রাজনীতি, আওয়ামী লীগ, বিএনপি, পঁচাত্তর, Bangladesh politics, post-independence politics.",
+      "title_evidence_book_count": 43,
+      "representative_books": [
+        {
+          "source_record": 5444,
+          "title": "বাংলাদেশের রাজনীতিতে জাসদ",
+          "author": "জিয়াউল হক মুক্তা",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 5112,
+          "title": "বাংলাদেশের রাজনীতিতে শাহবাগ বনাম শাপলা",
+          "author": "মাওলানা আব্দুল্লাহ বিন সাঈদ জালালাবাদী আল আযহারী",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "democratic_movements",
+      "facet": "subject",
+      "group_id": "politics",
+      "label_bn": "ছাত্র আন্দোলন ও গণঅভ্যুত্থান",
+      "label_en": "Student movements and mass uprisings",
+      "description": "Student politics, popular protest, resistance to authoritarian rule and mass uprisings.",
+      "aliases": [
+        "ছাত্র আন্দোলন",
+        "গণঅভ্যুত্থান",
+        "ঊনসত্তর",
+        "স্বৈরাচারবিরোধী",
+        "student movements",
+        "mass uprisings"
+      ],
+      "evidence_terms": [
+        "ছাত্র আন্দোলন",
+        "গণঅভ্যুত্থান",
+        "ঊনসত্তর",
+        "স্বৈরাচার"
+      ],
+      "example_queries": {
+        "bn": "ছাত্র আন্দোলন ও স্বৈরাচারবিরোধী সংগ্রাম নিয়ে বই",
+        "en": "Books about student movements and resistance to authoritarian rule"
+      },
+      "embedding_text": "ছাত্র আন্দোলন ও গণঅভ্যুত্থান. Student movements and mass uprisings. Student politics, popular protest, resistance to authoritarian rule and mass uprisings. Keywords: ছাত্র আন্দোলন, গণঅভ্যুত্থান, ঊনসত্তর, স্বৈরাচারবিরোধী, student movements, mass uprisings.",
+      "title_evidence_book_count": 26,
+      "representative_books": [
+        {
+          "source_record": 3409,
+          "title": "বাংলাদেশের ছাত্র আন্দোলনের ইতিহাস",
+          "author": "আমজাদ হোসেন",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 4399,
+          "title": "বাংলাদেশের ছাত্র আন্দোলনের ইতিহাস (১ম খন্ড)",
+          "author": "ড. মোহাম্মদ হাননান",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "july_uprising",
+      "facet": "subject",
+      "group_id": "politics",
+      "label_bn": "জুলাই-আগস্ট ২০২৪ আন্দোলন",
+      "label_en": "July-August 2024 movement",
+      "description": "Catalogue accounts of the July-August 2024 protests, uprising and participants' experiences.",
+      "aliases": [
+        "জুলাই অভ্যুত্থান",
+        "জুলাই বিপ্লব",
+        "জুলাই আগস্ট",
+        "কোটা আন্দোলন",
+        "July uprising",
+        "July August 2024"
+      ],
+      "evidence_terms": [
+        "জুলাই",
+        "কোটা আন্দোলন"
+      ],
+      "example_queries": {
+        "bn": "জুলাই-আগস্ট ২০২৪ আন্দোলনের প্রত্যক্ষ অভিজ্ঞতা নিয়ে বই",
+        "en": "Books with firsthand accounts of the July-August 2024 movement"
+      },
+      "embedding_text": "জুলাই-আগস্ট ২০২৪ আন্দোলন. July-August 2024 movement. Catalogue accounts of the July-August 2024 protests, uprising and participants' experiences. Keywords: জুলাই অভ্যুত্থান, জুলাই বিপ্লব, জুলাই আগস্ট, কোটা আন্দোলন, July uprising, July August 2024.",
+      "title_evidence_book_count": 45,
+      "representative_books": [
+        {
+          "source_record": 2479,
+          "title": "কোটা আন্দোলন থেকে গণঅভ্যুত্থান",
+          "author": "নজরুল ইসলাম",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 5154,
+          "title": "৩৬ জুলাই",
+          "author": "অনামিকা চৌধুরী",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "governance_democracy",
+      "facet": "subject",
+      "group_id": "politics",
+      "label_bn": "গণতন্ত্র, সংবিধান ও শাসনব্যবস্থা",
+      "label_en": "Democracy, constitutions and governance",
+      "description": "Democratic institutions, elections, constitutional debates, public administration and state organisation.",
+      "aliases": [
+        "গণতন্ত্র",
+        "সংবিধান",
+        "নির্বাচন",
+        "প্রশাসন",
+        "democracy",
+        "constitution",
+        "governance"
+      ],
+      "evidence_terms": [
+        "গণতন্ত্র",
+        "সংবিধান",
+        "নির্বাচন",
+        "নির্বাচনি"
+      ],
+      "example_queries": {
+        "bn": "বাংলাদেশের সংবিধান ও নির্বাচনি ব্যবস্থা নিয়ে বই",
+        "en": "Books about Bangladesh's constitution and electoral system"
+      },
+      "embedding_text": "গণতন্ত্র, সংবিধান ও শাসনব্যবস্থা. Democracy, constitutions and governance. Democratic institutions, elections, constitutional debates, public administration and state organisation. Keywords: গণতন্ত্র, সংবিধান, নির্বাচন, প্রশাসন, democracy, constitution, governance.",
+      "title_evidence_book_count": 59,
+      "representative_books": [
+        {
+          "source_record": 4723,
+          "title": "গণতন্ত্রের ১৫ বছর",
+          "author": "মতিউর রহমান",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 5307,
+          "title": "গণতন্ত্রের অভিমুখে",
+          "author": "সিরাজুল ইসলাম চৌধুরী",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "international_relations",
+      "facet": "subject",
+      "group_id": "politics",
+      "label_bn": "কূটনীতি ও আন্তর্জাতিক সম্পর্ক",
+      "label_en": "Diplomacy and international relations",
+      "description": "Foreign policy, diplomatic practice and relations among states.",
+      "aliases": [
+        "কূটনীতি",
+        "পররাষ্ট্রনীতি",
+        "আন্তর্জাতিক সম্পর্ক",
+        "diplomacy",
+        "foreign policy",
+        "international relations"
+      ],
+      "evidence_terms": [
+        "কূটনীতি",
+        "আন্তর্জাতিক সম্পর্ক",
+        "পররাষ্ট্রনীতি"
+      ],
+      "example_queries": {
+        "bn": "বাংলাদেশের পররাষ্ট্রনীতি ও কূটনীতি নিয়ে বই",
+        "en": "Books about Bangladesh's foreign policy and diplomacy"
+      },
+      "embedding_text": "কূটনীতি ও আন্তর্জাতিক সম্পর্ক. Diplomacy and international relations. Foreign policy, diplomatic practice and relations among states. Keywords: কূটনীতি, পররাষ্ট্রনীতি, আন্তর্জাতিক সম্পর্ক, diplomacy, foreign policy, international relations.",
+      "title_evidence_book_count": 7,
+      "representative_books": [
+        {
+          "source_record": 5907,
+          "title": "The A to Z Of আন্তর্জাতিক সম্পর্ক",
+          "author": "Noore Alam Siddiqui",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 3063,
+          "title": "আন্তর্জাতিক সম্পর্ক ও আধুনিক ইতিহাস অভিধান",
+          "author": "ড. গোলাম কিবরিয়া ভুঁইয়া",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "political_ideologies",
+      "facet": "subject",
+      "group_id": "politics",
+      "label_bn": "রাজনৈতিক মতবাদ ও বিপ্লব",
+      "label_en": "Political ideologies and revolutions",
+      "description": "Marxism, socialism, capitalism, nationalism and revolutionary thought and movements.",
+      "aliases": [
+        "মার্কসবাদ",
+        "সমাজতন্ত্র",
+        "পুঁজিবাদ",
+        "বিপ্লব",
+        "Marxism",
+        "socialism",
+        "capitalism",
+        "revolution"
+      ],
+      "evidence_terms": [
+        "মার্কস",
+        "সমাজতন্ত্র",
+        "পুঁজিবাদ",
+        "বিপ্লব"
+      ],
+      "example_queries": {
+        "bn": "পুঁজিবাদ ও সমাজতন্ত্রের তুলনা নিয়ে বই",
+        "en": "Books comparing capitalism and socialism"
+      },
+      "embedding_text": "রাজনৈতিক মতবাদ ও বিপ্লব. Political ideologies and revolutions. Marxism, socialism, capitalism, nationalism and revolutionary thought and movements. Keywords: মার্কসবাদ, সমাজতন্ত্র, পুঁজিবাদ, বিপ্লব, Marxism, socialism, capitalism, revolution.",
+      "title_evidence_book_count": 75,
+      "representative_books": [
+        {
+          "source_record": 5430,
+          "title": "সমাজতন্ত্রের অনিবার্য ভবিষ্যৎ",
+          "author": "বদরুদ্দীন উমর",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 4782,
+          "title": "সোভিয়েত সমাজতন্ত্রের সত্তর বছর",
+          "author": "হায়দার আকবর খান রনো",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "social_anthropology",
+      "facet": "subject",
+      "group_id": "society",
+      "label_bn": "সমাজবিজ্ঞান ও নৃবিজ্ঞান",
+      "label_en": "Sociology and anthropology",
+      "description": "Social structures, communities, cultural practices and anthropological studies.",
+      "aliases": [
+        "সমাজবিজ্ঞান",
+        "নৃবিজ্ঞান",
+        "সমাজ নৃবিজ্ঞান",
+        "sociology",
+        "anthropology"
+      ],
+      "evidence_terms": [
+        "সমাজবিজ্ঞান",
+        "নৃবিজ্ঞান"
+      ],
+      "example_queries": {
+        "bn": "দক্ষিণ এশিয়ার সমাজ ও সংস্কৃতি নিয়ে নৃবিজ্ঞানের বই",
+        "en": "Anthropological books about South Asian society and culture"
+      },
+      "embedding_text": "সমাজবিজ্ঞান ও নৃবিজ্ঞান. Sociology and anthropology. Social structures, communities, cultural practices and anthropological studies. Keywords: সমাজবিজ্ঞান, নৃবিজ্ঞান, সমাজ নৃবিজ্ঞান, sociology, anthropology.",
+      "title_evidence_book_count": 3,
+      "representative_books": [
+        {
+          "source_record": 3195,
+          "title": "ফরাসি সমাজবিজ্ঞান",
+          "author": "সাদাত উল্লাহ খান",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 7381,
+          "title": "দৃশ্য-সংস্কৃতির পাঠ নৃবিজ্ঞান শাস্ত্র ও দক্ষিণ এশীয় বিদ্যাগজত",
+          "author": "মানস চৌধুরী,সঞ্জীব রায়",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "folk_culture",
+      "facet": "subject",
+      "group_id": "society",
+      "label_bn": "লোকসংস্কৃতি ও সাংস্কৃতিক ঐতিহ্য",
+      "label_en": "Folklore and cultural heritage",
+      "description": "Folk traditions, local customs, crafts, cultural identity and intangible heritage.",
+      "aliases": [
+        "লোকসংস্কৃতি",
+        "ফোকলোর",
+        "লোকজ",
+        "হস্তশিল্প",
+        "folklore",
+        "folk culture",
+        "cultural heritage"
+      ],
+      "evidence_terms": [
+        "লোকসংস্কৃতি",
+        "ফোকলোর",
+        "হস্তশিল্প"
+      ],
+      "example_queries": {
+        "bn": "বাংলাদেশের লোকসংস্কৃতি ও লোকজ ঐতিহ্য নিয়ে বই",
+        "en": "Books about Bangladeshi folklore and folk traditions"
+      },
+      "embedding_text": "লোকসংস্কৃতি ও সাংস্কৃতিক ঐতিহ্য. Folklore and cultural heritage. Folk traditions, local customs, crafts, cultural identity and intangible heritage. Keywords: লোকসংস্কৃতি, ফোকলোর, লোকজ, হস্তশিল্প, folklore, folk culture, cultural heritage.",
+      "title_evidence_book_count": 27,
+      "representative_books": [
+        {
+          "source_record": 4846,
+          "title": "লোকসংস্কৃতির কথকতা",
+          "author": "চন্দন চৌধুরী",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 7349,
+          "title": "লোকসংস্কৃতির কতিপয় পাঠ",
+          "author": "তপন বাগচী",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "women_gender",
+      "facet": "subject",
+      "group_id": "society",
+      "label_bn": "নারী, অধিকার ও সমাজ",
+      "label_en": "Women, rights and society",
+      "description": "Women's lives, social roles, education, rights and gender-related struggles.",
+      "aliases": [
+        "নারী অধিকার",
+        "নারীমুক্তি",
+        "নারীবাদ",
+        "নারী শিক্ষা",
+        "women's rights",
+        "gender",
+        "feminism"
+      ],
+      "evidence_terms": [
+        "নারী",
+        "নারীমুক্তি",
+        "রোকেয়া",
+        "রোকেয়া"
+      ],
+      "example_queries": {
+        "bn": "নারী শিক্ষা ও সমাজে নারীর অবস্থান নিয়ে বই",
+        "en": "Books about women's education and social position"
+      },
+      "embedding_text": "নারী, অধিকার ও সমাজ. Women, rights and society. Women's lives, social roles, education, rights and gender-related struggles. Keywords: নারী অধিকার, নারীমুক্তি, নারীবাদ, নারী শিক্ষা, women's rights, gender, feminism.",
+      "title_evidence_book_count": 85,
+      "representative_books": [
+        {
+          "source_record": 5588,
+          "title": "নারীমুক্তির রাজনৈতিক সংগ্রাম",
+          "author": "জলি তালুকদার",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 9068,
+          "title": "রোকেয়া",
+          "author": "ড. বেগম জাহান আরা",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "ethnic_indigenous",
+      "facet": "subject",
+      "group_id": "society",
+      "label_bn": "আদিবাসী ও জাতিগত জনগোষ্ঠী",
+      "label_en": "Indigenous and ethnic communities",
+      "description": "Indigenous communities, ethnic identities, minority experiences and the Chittagong Hill Tracts.",
+      "aliases": [
+        "আদিবাসী",
+        "ক্ষুদ্র নৃগোষ্ঠী",
+        "পার্বত্য চট্টগ্রাম",
+        "indigenous peoples",
+        "ethnic communities"
+      ],
+      "evidence_terms": [
+        "আদিবাসী",
+        "পার্বত্য চট্টগ্রাম",
+        "নৃগোষ্ঠী"
+      ],
+      "example_queries": {
+        "bn": "পার্বত্য চট্টগ্রামের আদিবাসীদের ইতিহাস ও জীবন নিয়ে বই",
+        "en": "Books about the history and lives of indigenous communities in the Hill Tracts"
+      },
+      "embedding_text": "আদিবাসী ও জাতিগত জনগোষ্ঠী. Indigenous and ethnic communities. Indigenous communities, ethnic identities, minority experiences and the Chittagong Hill Tracts. Keywords: আদিবাসী, ক্ষুদ্র নৃগোষ্ঠী, পার্বত্য চট্টগ্রাম, indigenous peoples, ethnic communities.",
+      "title_evidence_book_count": 42,
+      "representative_books": [
+        {
+          "source_record": 4491,
+          "title": "পার্বত্য চট্টগ্রামের ইতিহাস",
+          "author": "জামাল উদ্দিন",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 5878,
+          "title": "পার্বত্য চট্টগ্রামের জুম্ম জনগণের আত্মনিয়ন্ত্রণাধিকার আন্দোলন প্রসঙ্গে প্রথম খণ্ড",
+          "author": "মঙ্গল কুমার চাকমা",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "journalism",
+      "facet": "subject",
+      "group_id": "society",
+      "label_bn": "সাংবাদিকতা ও গণমাধ্যম",
+      "label_en": "Journalism and media",
+      "description": "Newspapers, reporting, media history and journalists' professional experiences.",
+      "aliases": [
+        "সাংবাদিকতা",
+        "সংবাদপত্র",
+        "গণমাধ্যম",
+        "পত্রিকা",
+        "journalism",
+        "newspapers",
+        "media history"
+      ],
+      "evidence_terms": [
+        "সাংবাদিকতা",
+        "সাংবাদিকতায়",
+        "সংবাদপত্র",
+        "গণমাধ্যম"
+      ],
+      "example_queries": {
+        "bn": "বাংলা সংবাদপত্র ও সাংবাদিকতার ইতিহাস নিয়ে বই",
+        "en": "Books about the history of Bengali newspapers and journalism"
+      },
+      "embedding_text": "সাংবাদিকতা ও গণমাধ্যম. Journalism and media. Newspapers, reporting, media history and journalists' professional experiences. Keywords: সাংবাদিকতা, সংবাদপত্র, গণমাধ্যম, পত্রিকা, journalism, newspapers, media history.",
+      "title_evidence_book_count": 26,
+      "representative_books": [
+        {
+          "source_record": 9227,
+          "title": "সাংবাদিকতায় চার দশক",
+          "author": "মাহবুব আলম",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 4119,
+          "title": "বাংলার সংবাদপত্রের ইতিহাস (১৭৮০-১৯৪৭)",
+          "author": "ড. মো. আনোয়ারুল ইসলাম",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "islamic_history",
+      "facet": "subject",
+      "group_id": "religion",
+      "label_bn": "ইসলামি ইতিহাস ও মুসলিম সভ্যতা",
+      "label_en": "Islamic history and Muslim civilization",
+      "description": "Muslim societies, Islamic dynasties, cultural achievements and historical developments.",
+      "aliases": [
+        "ইসলামি ইতিহাস",
+        "মুসলিম সভ্যতা",
+        "ইসলামের ইতিহাস",
+        "Islamic history",
+        "Muslim civilization"
+      ],
+      "evidence_terms": [
+        "ইসলামি ইতিহাস",
+        "ইসলামী ইতিহাস",
+        "মুসলিম সভ্যতা",
+        "ইসলামের ইতিহাস",
+        "মুসলিম শাসন"
+      ],
+      "example_queries": {
+        "bn": "মুসলিম সভ্যতা ও ইসলামি ইতিহাস নিয়ে বই",
+        "en": "Books about Muslim civilization and Islamic history"
+      },
+      "embedding_text": "ইসলামি ইতিহাস ও মুসলিম সভ্যতা. Islamic history and Muslim civilization. Muslim societies, Islamic dynasties, cultural achievements and historical developments. Keywords: ইসলামি ইতিহাস, মুসলিম সভ্যতা, ইসলামের ইতিহাস, Islamic history, Muslim civilization.",
+      "title_evidence_book_count": 15,
+      "representative_books": [
+        {
+          "source_record": 8602,
+          "title": "ইসলামের ইতিহাসের মহাবীর খালিদ বিন ওয়ালিদ (রা)",
+          "author": "মোঃ সাইফুল আনোয়ার",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 2408,
+          "title": "ইসলামের ইতিহাসে যুদ্ধ",
+          "author": "সাদিক ফারহান",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "prophet_biography",
+      "facet": "subject",
+      "group_id": "religion",
+      "label_bn": "নবীজীবন ও সিরাত",
+      "label_en": "Prophets' lives and Sirah",
+      "description": "Lives of prophets, particularly the life, character and mission of Prophet Muhammad.",
+      "aliases": [
+        "সিরাত",
+        "সীরাত",
+        "নবীজীবন",
+        "মহানবী",
+        "Sirah",
+        "Seerah",
+        "life of Prophet Muhammad"
+      ],
+      "evidence_terms": [
+        "সিরাত",
+        "সিরাতুন",
+        "সীরাত",
+        "মহানবী",
+        "নবি জীবনের"
+      ],
+      "example_queries": {
+        "bn": "নবী মুহাম্মদের জীবন ও চরিত্র নিয়ে বই",
+        "en": "Books about the life and character of Prophet Muhammad"
+      },
+      "embedding_text": "নবীজীবন ও সিরাত. Prophets' lives and Sirah. Lives of prophets, particularly the life, character and mission of Prophet Muhammad. Keywords: সিরাত, সীরাত, নবীজীবন, মহানবী, Sirah, Seerah, life of Prophet Muhammad.",
+      "title_evidence_book_count": 49,
+      "representative_books": [
+        {
+          "source_record": 7561,
+          "title": "নবি জীবনের গল্প",
+          "author": "আরিফ আজাদ",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 2801,
+          "title": "সিরাতুন নবী",
+          "author": "মাওলানা ইসমাইল রেহান",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "companions_scholars",
+      "facet": "subject",
+      "group_id": "religion",
+      "label_bn": "সাহাবি ও ইসলামি ব্যক্তিত্ব",
+      "label_en": "Companions and Islamic figures",
+      "description": "Lives and contributions of the Companions, caliphs, scholars and notable Islamic figures.",
+      "aliases": [
+        "সাহাবি",
+        "সাহাবা",
+        "খলিফা",
+        "ইমাম",
+        "Companions",
+        "Sahaba",
+        "Islamic scholars"
+      ],
+      "evidence_terms": [
+        "সাহাবি",
+        "সাহাবা",
+        "সাহাবীদের",
+        "সাহাবায়ে",
+        "সাহাবায়ে",
+        "খলিফা"
+      ],
+      "example_queries": {
+        "bn": "সাহাবিদের জীবন ও জ্ঞানচর্চা নিয়ে বই",
+        "en": "Books about the lives and scholarship of the Companions"
+      },
+      "embedding_text": "সাহাবি ও ইসলামি ব্যক্তিত্ব. Companions and Islamic figures. Lives and contributions of the Companions, caliphs, scholars and notable Islamic figures. Keywords: সাহাবি, সাহাবা, খলিফা, ইমাম, Companions, Sahaba, Islamic scholars.",
+      "title_evidence_book_count": 44,
+      "representative_books": [
+        {
+          "source_record": 7928,
+          "title": "সাহাবিদের কারামত",
+          "author": "নাজিবুল্লাহ সিদ্দিকী",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 7776,
+          "title": "সাহাবিদের বহুবিবাহ",
+          "author": "আরিফুল ইসলাম,আব্দুল্লাহ ইয়াছিন শরীফী",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "islamic_teachings",
+      "facet": "subject",
+      "group_id": "religion",
+      "label_bn": "কুরআন, হাদিস ও ইসলামি জীবন",
+      "label_en": "Quran, Hadith and Islamic life",
+      "description": "Islamic scripture, Hadith, ethics, faith and religious practice.",
+      "aliases": [
+        "কুরআন",
+        "কোরআন",
+        "হাদিস",
+        "সুন্নাহ",
+        "ফিকহ",
+        "Quran",
+        "Hadith",
+        "Islamic ethics"
+      ],
+      "evidence_terms": [
+        "কুরআন",
+        "হাদিস",
+        "সুন্নাহ",
+        "ঈমান",
+        "ফিকহুল"
+      ],
+      "example_queries": {
+        "bn": "কুরআন ও হাদিসের আলোকে জীবন ও নৈতিকতা নিয়ে বই",
+        "en": "Books about life and ethics in the Quran and Hadith"
+      },
+      "embedding_text": "কুরআন, হাদিস ও ইসলামি জীবন. Quran, Hadith and Islamic life. Islamic scripture, Hadith, ethics, faith and religious practice. Keywords: কুরআন, কোরআন, হাদিস, সুন্নাহ, ফিকহ, Quran, Hadith, Islamic ethics.",
+      "title_evidence_book_count": 11,
+      "representative_books": [
+        {
+          "source_record": 7715,
+          "title": "কুরআনের সৌন্দর্যে অভিভূত",
+          "author": "নোমান আলী খান",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 2723,
+          "title": "আল কুরআনের ভৌগোলিক ইতিহাস",
+          "author": "সাইয়্যেদ সুলাইমান নদভি (রহ.)",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "comparative_religion",
+      "facet": "subject",
+      "group_id": "religion",
+      "label_bn": "ধর্মের ইতিহাস ও তুলনামূলক ধর্ম",
+      "label_en": "Religious history and comparative religion",
+      "description": "Histories, beliefs and traditions across religions, including Hinduism and Buddhism.",
+      "aliases": [
+        "ধর্মের ইতিহাস",
+        "হিন্দুধর্ম",
+        "বৌদ্ধধর্ম",
+        "তুলনামূলক ধর্ম",
+        "religious history",
+        "comparative religion"
+      ],
+      "evidence_terms": [
+        "ধর্মের ইতিহাস",
+        "হিন্দুধর্ম",
+        "বৌদ্ধধর্ম",
+        "ধর্মতত্ত্ব"
+      ],
+      "example_queries": {
+        "bn": "হিন্দু ও বৌদ্ধ ধর্মের ইতিহাস সম্পর্কে বই",
+        "en": "Books about the histories of Hinduism and Buddhism"
+      },
+      "embedding_text": "ধর্মের ইতিহাস ও তুলনামূলক ধর্ম. Religious history and comparative religion. Histories, beliefs and traditions across religions, including Hinduism and Buddhism. Keywords: ধর্মের ইতিহাস, হিন্দুধর্ম, বৌদ্ধধর্ম, তুলনামূলক ধর্ম, religious history, comparative religion.",
+      "title_evidence_book_count": 1,
+      "representative_books": [
+        {
+          "source_record": 2304,
+          "title": "হিন্দুধর্ম",
+          "author": "ক্ষিতিমোহন সেন",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "sufism",
+      "facet": "subject",
+      "group_id": "religion",
+      "label_bn": "সুফিবাদ ও মরমি ঐতিহ্য",
+      "label_en": "Sufism and mystical traditions",
+      "description": "Sufi thought, saints, shrines and mystical traditions in Bengal and elsewhere.",
+      "aliases": [
+        "সুফিবাদ",
+        "সুফি",
+        "পির",
+        "দরবেশ",
+        "মরমি",
+        "Sufism",
+        "mystical traditions"
+      ],
+      "evidence_terms": [
+        "সুফি",
+        "সুফিবাদ",
+        "সুফিয়ানা",
+        "মাজার সংস্কৃতি",
+        "পির দরবেশ"
+      ],
+      "example_queries": {
+        "bn": "বাংলার সুফি সাধক ও মরমি ঐতিহ্য নিয়ে বই",
+        "en": "Books about Sufi saints and mystical traditions in Bengal"
+      },
+      "embedding_text": "সুফিবাদ ও মরমি ঐতিহ্য. Sufism and mystical traditions. Sufi thought, saints, shrines and mystical traditions in Bengal and elsewhere. Keywords: সুফিবাদ, সুফি, পির, দরবেশ, মরমি, Sufism, mystical traditions.",
+      "title_evidence_book_count": 5,
+      "representative_books": [
+        {
+          "source_record": 7393,
+          "title": "মাজার সংস্কৃতির বহুমাত্রিক প্রভাব",
+          "author": "ড. মো. আশ্রাফুল করিম",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 2945,
+          "title": "বাংলার সুফিয়ানা ও সহজিয়ানা",
+          "author": "রায়হান রাইন",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "language_literature",
+      "facet": "subject",
+      "group_id": "literature",
+      "label_bn": "ভাষা, সাহিত্য ইতিহাস ও সমালোচনা",
+      "label_en": "Language, literary history and criticism",
+      "description": "Languages, scripts, literary development, interpretation and criticism of literary works.",
+      "aliases": [
+        "ভাষা",
+        "সাহিত্য সমালোচনা",
+        "সাহিত্য ইতিহাস",
+        "লিপি",
+        "literary criticism",
+        "literary history",
+        "language studies"
+      ],
+      "evidence_terms": [
+        "সাহিত্য",
+        "লিপি",
+        "চর্যাপদ"
+      ],
+      "example_queries": {
+        "bn": "বাংলা সাহিত্যের ইতিহাস ও সাহিত্য সমালোচনা নিয়ে বই",
+        "en": "Books about Bengali literary history and criticism"
+      },
+      "embedding_text": "ভাষা, সাহিত্য ইতিহাস ও সমালোচনা. Language, literary history and criticism. Languages, scripts, literary development, interpretation and criticism of literary works. Keywords: ভাষা, সাহিত্য সমালোচনা, সাহিত্য ইতিহাস, লিপি, literary criticism, literary history, language studies.",
+      "title_evidence_book_count": 70,
+      "representative_books": [
+        {
+          "source_record": 2495,
+          "title": "বাংলা সাহিত্যের ইতিহাস",
+          "author": "মোতাহার হোসেন সুফী",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 3885,
+          "title": "মারাঠি সাহিত্যের ইতিহাস",
+          "author": "বিপ্লব চক্রবর্তী",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "author_studies",
+      "facet": "subject",
+      "group_id": "literature",
+      "label_bn": "রবীন্দ্রনাথ, নজরুল ও সাহিত্যিকদের জীবন-কর্ম",
+      "label_en": "Writers' lives and works",
+      "description": "Studies of writers and poets, their biographies, ideas, literary works and correspondence.",
+      "aliases": [
+        "রবীন্দ্রনাথ",
+        "নজরুল",
+        "সাহিত্যিক",
+        "কবি",
+        "Tagore",
+        "Nazrul",
+        "author studies"
+      ],
+      "evidence_terms": [
+        "রবীন্দ্রনাথ",
+        "নজরুল",
+        "মানিক বন্দ্যোপাধ্যায়",
+        "জীবনানন্দ"
+      ],
+      "example_queries": {
+        "bn": "রবীন্দ্রনাথ ও নজরুলের জীবন ও সাহিত্যকর্ম নিয়ে বই",
+        "en": "Books about Tagore's and Nazrul's lives and literary works"
+      },
+      "embedding_text": "রবীন্দ্রনাথ, নজরুল ও সাহিত্যিকদের জীবন-কর্ম. Writers' lives and works. Studies of writers and poets, their biographies, ideas, literary works and correspondence. Keywords: রবীন্দ্রনাথ, নজরুল, সাহিত্যিক, কবি, Tagore, Nazrul, author studies.",
+      "title_evidence_book_count": 172,
+      "representative_books": [
+        {
+          "source_record": 8409,
+          "title": "মানিক বন্দ্যোপাধ্যায়",
+          "author": "অঞ্জন আচার্য",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 9487,
+          "title": "অপ্রকাশিত মানিক বন্দ্যোপাধ্যায়",
+          "author": "মানিক বন্দ্যোপাধ্যায়",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "cinema",
+      "facet": "subject",
+      "group_id": "arts",
+      "label_bn": "চলচ্চিত্র ও চলচ্চিত্র নির্মাণ",
+      "label_en": "Cinema and filmmaking",
+      "description": "Film history, criticism, filmmaking, directors and cinema culture.",
+      "aliases": [
+        "চলচ্চিত্র",
+        "সিনেমা",
+        "চলচ্চিত্র নির্মাণ",
+        "ফিল্মমেকার",
+        "cinema",
+        "filmmaking",
+        "film criticism"
+      ],
+      "evidence_terms": [
+        "চলচ্চিত্র",
+        "সিনেমা",
+        "ফিল্মমেকার"
+      ],
+      "example_queries": {
+        "bn": "বাংলাদেশের চলচ্চিত্রের ইতিহাস ও নির্মাণশৈলী নিয়ে বই",
+        "en": "Books about Bangladeshi cinema history and filmmaking"
+      },
+      "embedding_text": "চলচ্চিত্র ও চলচ্চিত্র নির্মাণ. Cinema and filmmaking. Film history, criticism, filmmaking, directors and cinema culture. Keywords: চলচ্চিত্র, সিনেমা, চলচ্চিত্র নির্মাণ, ফিল্মমেকার, cinema, filmmaking, film criticism.",
+      "title_evidence_book_count": 66,
+      "representative_books": [
+        {
+          "source_record": 8513,
+          "title": "ফিল্মমেকারের ভাষা (ইরানি)",
+          "author": "বিজয় আহমেদ",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 6787,
+          "title": "ফিল্মমেকারের ভাষা (লাতিন পর্ব)",
+          "author": "বিজয় আহমেদ,রুদ্র আরিফ",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "theatre",
+      "facet": "subject",
+      "group_id": "arts",
+      "label_bn": "নাট্যকলা ও মঞ্চ",
+      "label_en": "Theatre and performance",
+      "description": "Theatre history, dramatic art, staging and performance traditions; use a form tag separately for play texts.",
+      "aliases": [
+        "নাট্যকলা",
+        "মঞ্চ",
+        "থিয়েটার",
+        "নাট্য ইতিহাস",
+        "theatre",
+        "performing arts"
+      ],
+      "evidence_terms": [
+        "নাটক ইতিহাস",
+        "থিয়েটার",
+        "থিয়েটার",
+        "নাট্য"
+      ],
+      "example_queries": {
+        "bn": "নাট্যকলার ইতিহাস ও মঞ্চচর্চা নিয়ে বই",
+        "en": "Books about theatre history and stage practice"
+      },
+      "embedding_text": "নাট্যকলা ও মঞ্চ. Theatre and performance. Theatre history, dramatic art, staging and performance traditions; use a form tag separately for play texts. Keywords: নাট্যকলা, মঞ্চ, থিয়েটার, নাট্য ইতিহাস, theatre, performing arts.",
+      "title_evidence_book_count": 4,
+      "representative_books": [
+        {
+          "source_record": 3959,
+          "title": "ইউরোপীয় নাটক ইতিহাস ও গল্পকথা",
+          "author": "অমিতাভ চৌধুরী",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 6880,
+          "title": "থিয়েটারে বর্ষ-৩",
+          "author": "রামেন্দু মজুমদার",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "music",
+      "facet": "subject",
+      "group_id": "arts",
+      "label_bn": "সংগীত, গান ও সংগীতশিল্পী",
+      "label_en": "Music, songs and musicians",
+      "description": "Music history, folk and classical music, notation, song collections and musicians' lives.",
+      "aliases": [
+        "সংগীত",
+        "সঙ্গীত",
+        "গান",
+        "লোকগান",
+        "স্বরবিতান",
+        "music",
+        "folk songs",
+        "musicians"
+      ],
+      "evidence_terms": [
+        "সংগীত",
+        "সঙ্গীত",
+        "লোকগান",
+        "স্বরবিতান",
+        "গানের"
+      ],
+      "example_queries": {
+        "bn": "বাংলার লোকগান ও সংগীতশিল্পীদের জীবন নিয়ে বই",
+        "en": "Books about Bengali folk music and musicians' lives"
+      },
+      "embedding_text": "সংগীত, গান ও সংগীতশিল্পী. Music, songs and musicians. Music history, folk and classical music, notation, song collections and musicians' lives. Keywords: সংগীত, সঙ্গীত, গান, লোকগান, স্বরবিতান, music, folk songs, musicians.",
+      "title_evidence_book_count": 71,
+      "representative_books": [
+        {
+          "source_record": 6900,
+          "title": "স্বরবিতান (প্রথম খন্ড)",
+          "author": "রবীন্দ্রনাথ ঠাকুর",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 9248,
+          "title": "সঙ্গীতের গুণীজন",
+          "author": "এ কে এম শহীদুর রহমান",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "visual_arts",
+      "facet": "subject",
+      "group_id": "arts",
+      "label_bn": "চিত্রকলা, ভাস্কর্য ও আলোকচিত্র",
+      "label_en": "Visual arts and photography",
+      "description": "Painting, sculpture, art history, visual culture and photography.",
+      "aliases": [
+        "চিত্রকলা",
+        "ভাস্কর্য",
+        "আলোকচিত্র",
+        "painting",
+        "sculpture",
+        "photography"
+      ],
+      "evidence_terms": [
+        "চিত্রকলা",
+        "ভাস্কর্য",
+        "ভাস্কর্যে",
+        "আলোকচিত্রালাপ"
+      ],
+      "example_queries": {
+        "bn": "বাংলাদেশের চিত্রকলা ও আলোকচিত্র নিয়ে বই",
+        "en": "Books about Bangladeshi painting and photography"
+      },
+      "embedding_text": "চিত্রকলা, ভাস্কর্য ও আলোকচিত্র. Visual arts and photography. Painting, sculpture, art history, visual culture and photography. Keywords: চিত্রকলা, ভাস্কর্য, আলোকচিত্র, painting, sculpture, photography.",
+      "title_evidence_book_count": 6,
+      "representative_books": [
+        {
+          "source_record": 9405,
+          "title": "আলোকচিত্রালাপ : পাভেল রহমানের সঙ্গে",
+          "author": "সাহাদাত পারভেজ",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 9089,
+          "title": "ইউরোপীয় চিত্রকলায় ইম্প্রেশনিজম ও ভিনসেন্ট ভ্যানগখ",
+          "author": "খালেদা এদিব চৌধুরী",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "travel_writing",
+      "facet": "subject",
+      "group_id": "travel",
+      "label_bn": "দেশ-বিদেশ ভ্রমণ",
+      "label_en": "Travel and exploration",
+      "description": "Journeys, destinations, observations and travel experiences in Bangladesh and abroad.",
+      "aliases": [
+        "ভ্রমণ",
+        "ভ্রমণকাহিনি",
+        "ভ্রমণকাহিনী",
+        "পর্যটন",
+        "travel",
+        "travelogue",
+        "exploration"
+      ],
+      "evidence_terms": [
+        "ভ্রমণ",
+        "ভ্রমণসমগ্র",
+        "ভ্রমণকাহিনি",
+        "ভ্রমণকাহিনী"
+      ],
+      "example_queries": {
+        "bn": "দেশ-বিদেশের মানুষ ও সংস্কৃতি নিয়ে ভ্রমণকাহিনি",
+        "en": "Travel books about people and cultures around the world"
+      },
+      "embedding_text": "দেশ-বিদেশ ভ্রমণ. Travel and exploration. Journeys, destinations, observations and travel experiences in Bangladesh and abroad. Keywords: ভ্রমণ, ভ্রমণকাহিনি, ভ্রমণকাহিনী, পর্যটন, travel, travelogue, exploration.",
+      "title_evidence_book_count": 64,
+      "representative_books": [
+        {
+          "source_record": 5937,
+          "title": "অন্যরকম ভ্রমণ",
+          "author": "সমরেশ মজুমদার",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 5957,
+          "title": "ভ্রমণসমগ্র",
+          "author": "হুমায়ূন আহমেদ",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "migration_diaspora",
+      "facet": "subject",
+      "group_id": "travel",
+      "label_bn": "প্রবাস, অভিবাসন ও প্রবাসজীবন",
+      "label_en": "Migration, diaspora and life abroad",
+      "description": "Migration, expatriate lives, settlement abroad and diaspora experiences.",
+      "aliases": [
+        "প্রবাস",
+        "প্রবাসী",
+        "অভিবাসন",
+        "প্রবাসজীবন",
+        "diaspora",
+        "migration",
+        "expatriate life"
+      ],
+      "evidence_terms": [
+        "প্রবাস",
+        "প্রবাসী",
+        "প্রবাসে",
+        "অভিবাসন"
+      ],
+      "example_queries": {
+        "bn": "প্রবাসে বাঙালিদের জীবন ও অভিজ্ঞতা নিয়ে বই",
+        "en": "Books about Bengali diaspora experiences and life abroad"
+      },
+      "embedding_text": "প্রবাস, অভিবাসন ও প্রবাসজীবন. Migration, diaspora and life abroad. Migration, expatriate lives, settlement abroad and diaspora experiences. Keywords: প্রবাস, প্রবাসী, অভিবাসন, প্রবাসজীবন, diaspora, migration, expatriate life.",
+      "title_evidence_book_count": 29,
+      "representative_books": [
+        {
+          "source_record": 6511,
+          "title": "কানাডা অভিবাসনের আবেদন প্রত্যাশা ও বাস্তবতা",
+          "author": "এম এল গনি",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 49,
+          "title": "প্রবাসে মুক্তিযুদ্ধের দিনগুলি",
+          "author": "আবু সাঈদ চৌধুরী",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "pilgrimage",
+      "facet": "subject",
+      "group_id": "travel",
+      "label_bn": "হজ ও তীর্থভ্রমণ",
+      "label_en": "Hajj and pilgrimage travel",
+      "description": "Religious journeys, Hajj experiences and visits to pilgrimage destinations.",
+      "aliases": [
+        "হজ",
+        "হজ্জ",
+        "তীর্থ",
+        "তীর্থভ্রমণ",
+        "Hajj",
+        "pilgrimage"
+      ],
+      "evidence_terms": [
+        "হজ",
+        "হজ্জ",
+        "হজের",
+        "তীর্থ",
+        "হিন্দুতীর্থ"
+      ],
+      "example_queries": {
+        "bn": "হজ ও ধর্মীয় তীর্থভ্রমণের অভিজ্ঞতা নিয়ে বই",
+        "en": "Books about Hajj and religious pilgrimage experiences"
+      },
+      "embedding_text": "হজ ও তীর্থভ্রমণ. Hajj and pilgrimage travel. Religious journeys, Hajj experiences and visits to pilgrimage destinations. Keywords: হজ, হজ্জ, তীর্থ, তীর্থভ্রমণ, Hajj, pilgrimage.",
+      "title_evidence_book_count": 6,
+      "representative_books": [
+        {
+          "source_record": 6026,
+          "title": "হিন্দুতীর্থ কামরূপ কামাখ্যা",
+          "author": "অরুণ মুখোপাধ্যায়",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 6321,
+          "title": "ত্রিপুরা-তীর্থে",
+          "author": "শঙ্কু মহারাজ",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "economics_development",
+      "facet": "subject",
+      "group_id": "business",
+      "label_bn": "অর্থনীতি ও উন্নয়ন",
+      "label_en": "Economics and development",
+      "description": "Economic theory, political economy, poverty, public finance and economic development.",
+      "aliases": [
+        "অর্থনীতি",
+        "উন্নয়ন",
+        "দারিদ্র্য",
+        "রাজনৈতিক অর্থনীতি",
+        "economics",
+        "development",
+        "poverty"
+      ],
+      "evidence_terms": [
+        "অর্থনীতি",
+        "অর্থনীতির",
+        "অর্থনৈতিক",
+        "দারিদ্র্য"
+      ],
+      "example_queries": {
+        "bn": "বাংলাদেশের অর্থনীতি ও দারিদ্র্য নিয়ে বই",
+        "en": "Books about Bangladesh's economy and poverty"
+      },
+      "embedding_text": "অর্থনীতি ও উন্নয়ন. Economics and development. Economic theory, political economy, poverty, public finance and economic development. Keywords: অর্থনীতি, উন্নয়ন, দারিদ্র্য, রাজনৈতিক অর্থনীতি, economics, development, poverty.",
+      "title_evidence_book_count": 67,
+      "representative_books": [
+        {
+          "source_record": 9666,
+          "title": "দারিদ্র্যের অর্থনীতি : অতীত, বর্তমান ও ভবিষ্যৎ",
+          "author": "আকবর আলি খান",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 5172,
+          "title": "বাংলাদেশের গ্রামীণ দারিদ্র্যের রাজনৈতিক অর্থনীতি",
+          "author": "কামাল সিদ্দিকী",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "islamic_finance",
+      "facet": "subject",
+      "group_id": "business",
+      "label_bn": "ইসলামি অর্থনীতি ও ব্যবসায় নীতি",
+      "label_en": "Islamic economics and business ethics",
+      "description": "Islamic economic principles, interest-free finance, Islamic banking and religious business ethics.",
+      "aliases": [
+        "ইসলামি অর্থনীতি",
+        "সুদমুক্ত",
+        "ইসলামী ব্যাংকিং",
+        "ইসলামি ব্যবসা",
+        "Islamic finance",
+        "Islamic economics"
+      ],
+      "evidence_terms": [
+        "ইসলামি অর্থনীতি",
+        "ইসলামী অর্থনীতি",
+        "সুদমুক্ত",
+        "ইসলামী ব্যাংকিং",
+        "ফিকহুল বুয়ু"
+      ],
+      "example_queries": {
+        "bn": "সুদমুক্ত অর্থায়ন ও ইসলামি ব্যবসায় নীতি নিয়ে বই",
+        "en": "Books about interest-free finance and Islamic business ethics"
+      },
+      "embedding_text": "ইসলামি অর্থনীতি ও ব্যবসায় নীতি. Islamic economics and business ethics. Islamic economic principles, interest-free finance, Islamic banking and religious business ethics. Keywords: ইসলামি অর্থনীতি, সুদমুক্ত, ইসলামী ব্যাংকিং, ইসলামি ব্যবসা, Islamic finance, Islamic economics.",
+      "title_evidence_book_count": 9,
+      "representative_books": [
+        {
+          "source_record": 9762,
+          "title": "ইসলামী অর্থনীতি ",
+          "author": " পুঁজিবাদী অর্থনীতির বিকল্প প্রস্তাবনা",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 9813,
+          "title": "ইসলামী ব্যাংকিং ও বীমা",
+          "author": "ড. নুরুল আমিন",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "banking_finance",
+      "facet": "subject",
+      "group_id": "business",
+      "label_bn": "ব্যাংকিং, বীমা ও আর্থিক ব্যবস্থা",
+      "label_en": "Banking, insurance and financial systems",
+      "description": "Banks, banking practice, insurance, financial institutions and trade finance.",
+      "aliases": [
+        "ব্যাংকিং",
+        "ব্যাংক",
+        "বীমা",
+        "আর্থিক ব্যবস্থা",
+        "banking",
+        "insurance",
+        "financial systems"
+      ],
+      "evidence_terms": [
+        "ব্যাংকিং",
+        "ব্যাংক",
+        "বীমা",
+        "banking"
+      ],
+      "example_queries": {
+        "bn": "ব্যাংকিং ও আন্তর্জাতিক বাণিজ্য অর্থায়ন নিয়ে বই",
+        "en": "Books about banking and international trade finance"
+      },
+      "embedding_text": "ব্যাংকিং, বীমা ও আর্থিক ব্যবস্থা. Banking, insurance and financial systems. Banks, banking practice, insurance, financial institutions and trade finance. Keywords: ব্যাংকিং, ব্যাংক, বীমা, আর্থিক ব্যবস্থা, banking, insurance, financial systems.",
+      "title_evidence_book_count": 38,
+      "representative_books": [
+        {
+          "source_record": 10029,
+          "title": "মানবিক ব্যাংকিং",
+          "author": "আতিউর রহমান",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 9768,
+          "title": "সমকালীন ব্যাংকিং",
+          "author": "এম এ মাসুম",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "personal_finance",
+      "facet": "subject",
+      "group_id": "business",
+      "label_bn": "ব্যক্তিগত অর্থব্যবস্থা ও সঞ্চয়",
+      "label_en": "Personal finance and money management",
+      "description": "Managing personal money, savings, budgeting and financial habits.",
+      "aliases": [
+        "পারসোনাল ফাইন্যান্স",
+        "টাকা",
+        "সঞ্চয়",
+        "অর্থব্যবস্থাপনা",
+        "personal finance",
+        "money management"
+      ],
+      "evidence_terms": [
+        "পারসোনাল ফাইন্যান্স",
+        "ফাইন্যান্স",
+        "মানি",
+        "money",
+        "টাকার"
+      ],
+      "example_queries": {
+        "bn": "নিজের টাকা ও সঞ্চয় ভালোভাবে পরিচালনা করার বই",
+        "en": "Books about managing personal money and savings"
+      },
+      "embedding_text": "ব্যক্তিগত অর্থব্যবস্থা ও সঞ্চয়. Personal finance and money management. Managing personal money, savings, budgeting and financial habits. Keywords: পারসোনাল ফাইন্যান্স, টাকা, সঞ্চয়, অর্থব্যবস্থাপনা, personal finance, money management.",
+      "title_evidence_book_count": 25,
+      "representative_books": [
+        {
+          "source_record": 9630,
+          "title": "দি আর্ট অব পারসোনাল ফাইন্যান্স ম্যানেজমেন্ট",
+          "author": "সাইফুল হোসেন",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 9689,
+          "title": "ফাইন্যান্স বেসিকস",
+          "author": "মোহাম্মদ আবদুল লতিফ",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "investment",
+      "facet": "subject",
+      "group_id": "business",
+      "label_bn": "বিনিয়োগ ও শেয়ারবাজার",
+      "label_en": "Investment and stock markets",
+      "description": "Investment principles, shares, capital markets and market participation.",
+      "aliases": [
+        "বিনিয়োগ",
+        "শেয়ারবাজার",
+        "শেয়ার",
+        "পুঁজিবাজার",
+        "investment",
+        "stock market"
+      ],
+      "evidence_terms": [
+        "বিনিয়োগ",
+        "বিনিয়োগ",
+        "শেয়ার",
+        "শেয়ার",
+        "পুঁজিবাজার"
+      ],
+      "example_queries": {
+        "bn": "শেয়ারবাজার ও বিনিয়োগের মৌলিক বিষয় নিয়ে বই",
+        "en": "Books about the basics of investing and stock markets"
+      },
+      "embedding_text": "বিনিয়োগ ও শেয়ারবাজার. Investment and stock markets. Investment principles, shares, capital markets and market participation. Keywords: বিনিয়োগ, শেয়ারবাজার, শেয়ার, পুঁজিবাজার, investment, stock market.",
+      "title_evidence_book_count": 13,
+      "representative_books": [
+        {
+          "source_record": 9743,
+          "title": "পুঁজিবাজারের অর্থ বৎসরের ক্যালেন্ডার ও ইত্যাদি",
+          "author": "মোহাম্মদ মহিউদ্দিন এফ. সি. এম. এ,সায়রা বানু (এসি এমএ)",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 9844,
+          "title": "পুঁজি বিনিয়োগের কলাকৌশল",
+          "author": "শরীফ নাফে আচ্ছাবের",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "marketing_sales",
+      "facet": "subject",
+      "group_id": "business",
+      "label_bn": "মার্কেটিং, ব্র্যান্ডিং ও বিক্রয়",
+      "label_en": "Marketing, branding and sales",
+      "description": "Marketing strategy, brand building, selling, digital promotion and customer relationships.",
+      "aliases": [
+        "মার্কেটিং",
+        "ব্র্যান্ডিং",
+        "বিক্রয়",
+        "ডিজিটাল মার্কেটিং",
+        "সেলস",
+        "marketing",
+        "branding",
+        "sales"
+      ],
+      "evidence_terms": [
+        "মার্কেটিং",
+        "ব্র্যান্ডিং",
+        "বিক্রয়",
+        "বিক্রয়",
+        "marketing",
+        "সেলস"
+      ],
+      "example_queries": {
+        "bn": "ডিজিটাল মার্কেটিং ও বিক্রয় বাড়ানোর কৌশল নিয়ে বই",
+        "en": "Books about digital marketing and improving sales"
+      },
+      "embedding_text": "মার্কেটিং, ব্র্যান্ডিং ও বিক্রয়. Marketing, branding and sales. Marketing strategy, brand building, selling, digital promotion and customer relationships. Keywords: মার্কেটিং, ব্র্যান্ডিং, বিক্রয়, ডিজিটাল মার্কেটিং, সেলস, marketing, branding, sales.",
+      "title_evidence_book_count": 94,
+      "representative_books": [
+        {
+          "source_record": 9827,
+          "title": "ইমোশনাল ব্র্যান্ডিং",
+          "author": "মোঃ মাছুম চৌধুরী",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 9639,
+          "title": "পার্সোনাল ব্র্যান্ডিং",
+          "author": "মো. তাজদীন হাসান,রাফিদ এলাহী চৌধুরী,মোঃ সোহান হায়দার",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "entrepreneurship",
+      "facet": "subject",
+      "group_id": "business",
+      "label_bn": "উদ্যোক্তা, ব্যবসা ও ই-কমার্স",
+      "label_en": "Entrepreneurship, business and e-commerce",
+      "description": "Starting and operating businesses, entrepreneurial thinking, online commerce and startups.",
+      "aliases": [
+        "উদ্যোক্তা",
+        "ব্যবসা",
+        "ই-কমার্স",
+        "অনলাইন ব্যবসা",
+        "entrepreneurship",
+        "startup",
+        "e-commerce"
+      ],
+      "evidence_terms": [
+        "উদ্যোক্তা",
+        "ব্যবসা",
+        "ব্যবসায়",
+        "ব্যবসায়",
+        "ই কমার্স"
+      ],
+      "example_queries": {
+        "bn": "নতুন উদ্যোক্তাদের অনলাইন ব্যবসা শুরু করার বই",
+        "en": "Books for new entrepreneurs starting an online business"
+      },
+      "embedding_text": "উদ্যোক্তা, ব্যবসা ও ই-কমার্স. Entrepreneurship, business and e-commerce. Starting and operating businesses, entrepreneurial thinking, online commerce and startups. Keywords: উদ্যোক্তা, ব্যবসা, ই-কমার্স, অনলাইন ব্যবসা, entrepreneurship, startup, e-commerce.",
+      "title_evidence_book_count": 34,
+      "representative_books": [
+        {
+          "source_record": 10088,
+          "title": "উদ্যোক্তাদের হিসাববিজ্ঞান",
+          "author": "মঈন রেজা নাদিম",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 9679,
+          "title": "উদ্যোক্তার অ আ, ক খ",
+          "author": "মো: আমিনুল ইসলাম শাহিন",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "management_leadership",
+      "facet": "subject",
+      "group_id": "business",
+      "label_bn": "ব্যবস্থাপনা ও নেতৃত্ব",
+      "label_en": "Management and leadership",
+      "description": "Managing organisations and teams, leadership, strategy and organisational practice.",
+      "aliases": [
+        "ব্যবস্থাপনা",
+        "ম্যানেজমেন্ট",
+        "নেতৃত্ব",
+        "লিডারশিপ",
+        "management",
+        "leadership"
+      ],
+      "evidence_terms": [
+        "ম্যানেজমেন্ট",
+        "ব্যবস্থাপনা",
+        "লিডারশিপ",
+        "leadership",
+        "management"
+      ],
+      "example_queries": {
+        "bn": "দল পরিচালনা ও নেতৃত্বের দক্ষতা বাড়ানোর বই",
+        "en": "Books about team management and leadership skills"
+      },
+      "embedding_text": "ব্যবস্থাপনা ও নেতৃত্ব. Management and leadership. Managing organisations and teams, leadership, strategy and organisational practice. Keywords: ব্যবস্থাপনা, ম্যানেজমেন্ট, নেতৃত্ব, লিডারশিপ, management, leadership.",
+      "title_evidence_book_count": 34,
+      "representative_books": [
+        {
+          "source_record": 9684,
+          "title": "ম্যানেজমেন্ট",
+          "author": "ব্রায়ান ট্রেসি",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 9756,
+          "title": "প্রজেক্ট ম্যানেজমেন্টের খুঁটিনাটি",
+          "author": "কবির আল মামুন",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "career_productivity",
+      "facet": "subject",
+      "group_id": "business",
+      "label_bn": "ক্যারিয়ার, দক্ষতা ও ব্যক্তিগত উন্নতি",
+      "label_en": "Career, skills and personal development",
+      "description": "Professional growth, success habits, productivity, communication and customer service.",
+      "aliases": [
+        "ক্যারিয়ার",
+        "সাফল্য",
+        "আত্মউন্নয়ন",
+        "কাস্টমার সার্ভিস",
+        "career",
+        "productivity",
+        "personal development"
+      ],
+      "evidence_terms": [
+        "ক্যারিয়ার",
+        "ক্যারিয়ার",
+        "কাস্টমার সার্ভিস",
+        "হাউ টু উইন",
+        "সাকসেস"
+      ],
+      "example_queries": {
+        "bn": "ক্যারিয়ার ও কাস্টমার সার্ভিসের দক্ষতা বাড়ানোর বই",
+        "en": "Books about career growth and customer service skills"
+      },
+      "embedding_text": "ক্যারিয়ার, দক্ষতা ও ব্যক্তিগত উন্নতি. Career, skills and personal development. Professional growth, success habits, productivity, communication and customer service. Keywords: ক্যারিয়ার, সাফল্য, আত্মউন্নয়ন, কাস্টমার সার্ভিস, career, productivity, personal development.",
+      "title_evidence_book_count": 16,
+      "representative_books": [
+        {
+          "source_record": 10081,
+          "title": "কাস্টমার সার্ভিসের কলাকৌশল",
+          "author": "কয়েস সামী",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 10042,
+          "title": "সেরা কাস্টমার সার্ভিস",
+          "author": "মো. মাহমুদুল হাসান",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "philosophy",
+      "facet": "subject",
+      "group_id": "knowledge",
+      "label_bn": "দর্শন ও চিন্তাচর্চা",
+      "label_en": "Philosophy and intellectual thought",
+      "description": "Philosophical ideas, thinkers, ethics, reasoning and intellectual history.",
+      "aliases": [
+        "দর্শন",
+        "দার্শনিক",
+        "চিন্তাচর্চা",
+        "philosophy",
+        "philosophers",
+        "intellectual history"
+      ],
+      "evidence_terms": [
+        "দর্শন",
+        "দার্শনিক",
+        "দর্শনের"
+      ],
+      "example_queries": {
+        "bn": "দর্শন ও দার্শনিকদের চিন্তা সম্পর্কে বই",
+        "en": "Books about philosophy and philosophers' ideas"
+      },
+      "embedding_text": "দর্শন ও চিন্তাচর্চা. Philosophy and intellectual thought. Philosophical ideas, thinkers, ethics, reasoning and intellectual history. Keywords: দর্শন, দার্শনিক, চিন্তাচর্চা, philosophy, philosophers, intellectual history.",
+      "title_evidence_book_count": 25,
+      "representative_books": [
+        {
+          "source_record": 7683,
+          "title": "সেইসব দার্শনিক",
+          "author": "সরদার ফজলুল করিম",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 8076,
+          "title": "বিশ্বের শ্রেষ্ঠ দশ দার্শনিক",
+          "author": "সৈয়দ আবুল মকসুদ",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "science",
+      "facet": "subject",
+      "group_id": "knowledge",
+      "label_bn": "বিজ্ঞান ও বৈজ্ঞানিক চিন্তা",
+      "label_en": "Science and scientific thought",
+      "description": "Scientific ideas, discoveries, evolution and the lives and work of scientists.",
+      "aliases": [
+        "বিজ্ঞান",
+        "বৈজ্ঞানিক",
+        "বিবর্তন",
+        "বিজ্ঞানী",
+        "science",
+        "scientific thought",
+        "evolution"
+      ],
+      "evidence_terms": [
+        "বিজ্ঞান",
+        "বৈজ্ঞানিক",
+        "জৈববিবর্তনবাদ",
+        "বিজ্ঞানী"
+      ],
+      "example_queries": {
+        "bn": "বিবর্তন ও বিজ্ঞানের ইতিহাস নিয়ে বই",
+        "en": "Books about evolution and the history of science"
+      },
+      "embedding_text": "বিজ্ঞান ও বৈজ্ঞানিক চিন্তা. Science and scientific thought. Scientific ideas, discoveries, evolution and the lives and work of scientists. Keywords: বিজ্ঞান, বৈজ্ঞানিক, বিবর্তন, বিজ্ঞানী, science, scientific thought, evolution.",
+      "title_evidence_book_count": 45,
+      "representative_books": [
+        {
+          "source_record": 4257,
+          "title": "জৈববিবর্তনবাদ: দেড়শ’ বছরের দ্বন্দ বিরোধ",
+          "author": "প্রকৌশলী মোঃ মনিরুল ইসলাম",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 7602,
+          "title": "বিজ্ঞানীদের কাণ্ডকারখানা",
+          "author": "রাগিব হাসান",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "education",
+      "facet": "subject",
+      "group_id": "knowledge",
+      "label_bn": "শিক্ষা ও শিক্ষাপ্রতিষ্ঠান",
+      "label_en": "Education and educational institutions",
+      "description": "Educational thought, schools, universities, teaching and institutional histories.",
+      "aliases": [
+        "শিক্ষা",
+        "শিক্ষাব্যবস্থা",
+        "বিদ্যালয়",
+        "বিশ্ববিদ্যালয়",
+        "education",
+        "universities",
+        "schools"
+      ],
+      "evidence_terms": [
+        "শিক্ষা",
+        "শিক্ষাব্যবস্থা",
+        "বিশ্ববিদ্যালয়",
+        "বিশ্ববিদ্যালয়",
+        "স্কুল"
+      ],
+      "example_queries": {
+        "bn": "বাংলাদেশের বিশ্ববিদ্যালয় ও শিক্ষাব্যবস্থার ইতিহাস নিয়ে বই",
+        "en": "Books about the history of education and universities in Bangladesh"
+      },
+      "embedding_text": "শিক্ষা ও শিক্ষাপ্রতিষ্ঠান. Education and educational institutions. Educational thought, schools, universities, teaching and institutional histories. Keywords: শিক্ষা, শিক্ষাব্যবস্থা, বিদ্যালয়, বিশ্ববিদ্যালয়, education, universities, schools.",
+      "title_evidence_book_count": 50,
+      "representative_books": [
+        {
+          "source_record": 4014,
+          "title": "বিশ্ববিদ্যালয়ের ইতিহাস: আদিপর্ব",
+          "author": "শিশির ভট্টাচার্য্য",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 3006,
+          "title": "রাজশাহী বিশ্ববিদ্যালয়ের সাত দশক",
+          "author": "সনৎকুমার সাহা",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "health_medicine",
+      "facet": "subject",
+      "group_id": "knowledge",
+      "label_bn": "স্বাস্থ্য, চিকিৎসা ও জনস্বাস্থ্য",
+      "label_en": "Health, medicine and public health",
+      "description": "Medical experiences, healthcare, public health movements and medical figures.",
+      "aliases": [
+        "স্বাস্থ্য",
+        "চিকিৎসা",
+        "জনস্বাস্থ্য",
+        "health",
+        "medicine",
+        "public health"
+      ],
+      "evidence_terms": [
+        "জনস্বাস্থ্য",
+        "চিকিৎসা",
+        "স্বাস্থ্য অর্থনীতি"
+      ],
+      "example_queries": {
+        "bn": "জনস্বাস্থ্য আন্দোলন ও চিকিৎসকদের অভিজ্ঞতা নিয়ে বই",
+        "en": "Books about public health movements and doctors' experiences"
+      },
+      "embedding_text": "স্বাস্থ্য, চিকিৎসা ও জনস্বাস্থ্য. Health, medicine and public health. Medical experiences, healthcare, public health movements and medical figures. Keywords: স্বাস্থ্য, চিকিৎসা, জনস্বাস্থ্য, health, medicine, public health.",
+      "title_evidence_book_count": 5,
+      "representative_books": [
+        {
+          "source_record": 9912,
+          "title": "স্বাস্থ্য অর্থনীতি ও আমাদের উন্নয়ন ভাবনা",
+          "author": "শরীফ নাফে আচ্ছাবের",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 8625,
+          "title": "জনস্বাস্থ্য আন্দোলনের রূপকার ও সমাজ বিপ্লবী: ডা. জাফরুল্লাহ চৌধুরী",
+          "author": "নেসার আমিন",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "sports",
+      "facet": "subject",
+      "group_id": "knowledge",
+      "label_bn": "ক্রীড়া ও ক্রীড়াব্যক্তিত্ব",
+      "label_en": "Sports and sporting figures",
+      "description": "Sporting lives, athletes, sports personalities and sports culture.",
+      "aliases": [
+        "ক্রীড়া",
+        "খেলাধুলা",
+        "ক্রিকেট",
+        "ফুটবল",
+        "sports",
+        "athletes"
+      ],
+      "evidence_terms": [
+        "ক্রীড়া",
+        "ক্রীড়া",
+        "ক্রীড়াব্যাক্তিত্ব",
+        "ক্রীড়াঙ্গন",
+        "ক্রিকেট",
+        "ফুটবল"
+      ],
+      "example_queries": {
+        "bn": "ক্রীড়াব্যক্তিত্বদের জীবন ও অভিজ্ঞতা নিয়ে বই",
+        "en": "Books about the lives and experiences of sporting figures"
+      },
+      "embedding_text": "ক্রীড়া ও ক্রীড়াব্যক্তিত্ব. Sports and sporting figures. Sporting lives, athletes, sports personalities and sports culture. Keywords: ক্রীড়া, খেলাধুলা, ক্রিকেট, ফুটবল, sports, athletes.",
+      "title_evidence_book_count": 4,
+      "representative_books": [
+        {
+          "source_record": 8496,
+          "title": "সেরা ১০০ ক্রীড়াব্যাক্তিত্ব",
+          "author": "হাসান শরীফ",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 9128,
+          "title": "ক্রীড়াঙ্গনের আলোকবর্তিকা",
+          "author": "মোঃ আনিসুর রহমান",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "history_form",
+      "facet": "form",
+      "group_id": "formats",
+      "label_bn": "ইতিহাসগ্রন্থ",
+      "label_en": "Historical accounts",
+      "description": "Books presented as historical accounts; combine with a subject, place or period.",
+      "aliases": [
+        "ইতিহাসগ্রন্থ",
+        "ঐতিহাসিক বিবরণ",
+        "history books",
+        "historical accounts"
+      ],
+      "evidence_terms": [
+        "ইতিহাস"
+      ],
+      "example_queries": {
+        "bn": "বাংলার ইতিহাসের বই",
+        "en": "Historical accounts of Bengal"
+      },
+      "embedding_text": "ইতিহাসগ্রন্থ. Historical accounts. Books presented as historical accounts; combine with a subject, place or period. Keywords: ইতিহাসগ্রন্থ, ঐতিহাসিক বিবরণ, history books, historical accounts.",
+      "title_evidence_book_count": 783,
+      "representative_books": [
+        {
+          "source_record": 2788,
+          "title": "বাংলাদেশের ইতিহাসের রূপরেখা",
+          "author": "আশফাক হোসেন",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 2666,
+          "title": "মুঘল ভারতের ইতিহাস",
+          "author": "ড. মোহাম্মদ ছিদ্দিকুর রহমান খান",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "biography",
+      "facet": "form",
+      "group_id": "formats",
+      "label_bn": "জীবনী",
+      "label_en": "Biography",
+      "description": "Accounts of another person's life, distinct from first-person autobiography.",
+      "aliases": [
+        "জীবনী",
+        "জীবনচরিত",
+        "জীবন ও কর্ম",
+        "biography",
+        "life story"
+      ],
+      "evidence_terms": [
+        "জীবনী",
+        "জীবনচরিত",
+        "জীবন ও কর্ম"
+      ],
+      "example_queries": {
+        "bn": "একজন বিজ্ঞানীর জীবনী",
+        "en": "A biography of a scientist"
+      },
+      "embedding_text": "জীবনী. Biography. Accounts of another person's life, distinct from first-person autobiography. Keywords: জীবনী, জীবনচরিত, জীবন ও কর্ম, biography, life story.",
+      "title_evidence_book_count": 65,
+      "representative_books": [
+        {
+          "source_record": 8616,
+          "title": "আহমদ শরীফ : জীবন ও কর্ম",
+          "author": "মাসুদ রহমান",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 7463,
+          "title": "জীবন ও কর্ম : আয়েশা রাযি.",
+          "author": "মুহাম্মদ আদম আলী,রাশীদ হাইলামায",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "autobiography_memoir",
+      "facet": "form",
+      "group_id": "formats",
+      "label_bn": "আত্মজীবনী ও স্মৃতিকথা",
+      "label_en": "Autobiography and memoir",
+      "description": "First-person life narratives, recollections and memories of particular experiences.",
+      "aliases": [
+        "আত্মজীবনী",
+        "স্মৃতিকথা",
+        "স্মৃতিচারণ",
+        "আত্মকথা",
+        "autobiography",
+        "memoir"
+      ],
+      "evidence_terms": [
+        "আত্মজীবনী",
+        "স্মৃতিকথা",
+        "স্মৃতিচারণ",
+        "আত্মকথা"
+      ],
+      "example_queries": {
+        "bn": "একজন মুক্তিযোদ্ধার স্মৃতিকথা",
+        "en": "A freedom fighter's memoir"
+      },
+      "embedding_text": "আত্মজীবনী ও স্মৃতিকথা. Autobiography and memoir. First-person life narratives, recollections and memories of particular experiences. Keywords: আত্মজীবনী, স্মৃতিকথা, স্মৃতিচারণ, আত্মকথা, autobiography, memoir.",
+      "title_evidence_book_count": 59,
+      "representative_books": [
+        {
+          "source_record": 3,
+          "title": "একাত্তরের স্মৃতিকথা",
+          "author": "মোহাম্মদ মতিউর রহমান সেলিম",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 195,
+          "title": "গেরিলা নারী : নারী মুক্তিযোদ্ধাদের স্মৃতিকথা",
+          "author": "বিচারপতি মুহাম্মদ হাবিবুর রহমান",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "diary",
+      "facet": "form",
+      "group_id": "formats",
+      "label_bn": "ডায়েরি ও দিনলিপি",
+      "label_en": "Diaries and journals",
+      "description": "Dated journals, diaries and day-by-day records of personal or historical experience.",
+      "aliases": [
+        "ডায়েরি",
+        "ডায়েরি",
+        "দিনলিপি",
+        "রোজনামচা",
+        "diary",
+        "journal"
+      ],
+      "evidence_terms": [
+        "ডায়েরি",
+        "ডায়েরি",
+        "দিনলিপি",
+        "রোজনামচা"
+      ],
+      "example_queries": {
+        "bn": "একাত্তরের যুদ্ধদিনের ডায়েরি",
+        "en": "Diaries written during the 1971 war"
+      },
+      "embedding_text": "ডায়েরি ও দিনলিপি. Diaries and journals. Dated journals, diaries and day-by-day records of personal or historical experience. Keywords: ডায়েরি, ডায়েরি, দিনলিপি, রোজনামচা, diary, journal.",
+      "title_evidence_book_count": 77,
+      "representative_books": [
+        {
+          "source_record": 284,
+          "title": "৭১ এর রোজনামচা",
+          "author": "আহসান হাবীব (কার্টুনিস্ট)",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 5980,
+          "title": "কানাডার রোজনামচা",
+          "author": "জাভেদ ইকবাল",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "novel",
+      "facet": "form",
+      "group_id": "formats",
+      "label_bn": "উপন্যাস",
+      "label_en": "Novels",
+      "description": "Long-form fictional narratives; historical subject matter does not make them factual accounts.",
+      "aliases": [
+        "উপন্যাস",
+        "ফিকশন",
+        "কিশোর উপন্যাস",
+        "novel",
+        "fiction"
+      ],
+      "evidence_terms": [
+        "উপন্যাস"
+      ],
+      "example_queries": {
+        "bn": "মুক্তিযুদ্ধের পটভূমিতে লেখা উপন্যাস",
+        "en": "Novels set during the Liberation War"
+      },
+      "embedding_text": "উপন্যাস. Novels. Long-form fictional narratives; historical subject matter does not make them factual accounts. Keywords: উপন্যাস, ফিকশন, কিশোর উপন্যাস, novel, fiction.",
+      "title_evidence_book_count": 46,
+      "representative_books": [
+        {
+          "source_record": 20,
+          "title": "মুক্তিযুদ্ধের উপন্যাস - মুক্তি",
+          "author": "শাহআলম সাজু",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 64,
+          "title": "সেরা পাঁচ মুক্তিযুদ্ধের উপন্যাস",
+          "author": "হুমায়ূন আহমেদ",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "short_story",
+      "facet": "form",
+      "group_id": "formats",
+      "label_bn": "গল্প ও ছোটগল্প",
+      "label_en": "Stories and short fiction",
+      "description": "Stories and short-story collections; narrative nonfiction can also use the word story, so verify the flap.",
+      "aliases": [
+        "গল্প",
+        "ছোটগল্প",
+        "গল্পগ্রন্থ",
+        "short stories",
+        "story collection"
+      ],
+      "evidence_terms": [
+        "ছোটগল্প",
+        "গল্প"
+      ],
+      "example_queries": {
+        "bn": "দেশভাগ নিয়ে ছোটগল্প",
+        "en": "Short stories about Partition"
+      },
+      "embedding_text": "গল্প ও ছোটগল্প. Stories and short fiction. Stories and short-story collections; narrative nonfiction can also use the word story, so verify the flap. Keywords: গল্প, ছোটগল্প, গল্পগ্রন্থ, short stories, story collection.",
+      "title_evidence_book_count": 354,
+      "representative_books": [
+        {
+          "source_record": 1444,
+          "title": "গল্পগুলো বিজয়ের",
+          "author": "ফখরুল হাসান",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 5056,
+          "title": "গল্পগুলো সিরিয়ার",
+          "author": "মোজাম্মেল হোসেন ত্বোহা",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "poetry",
+      "facet": "form",
+      "group_id": "formats",
+      "label_bn": "কবিতা, কাব্য ও ছড়া",
+      "label_en": "Poetry and rhymes",
+      "description": "Poems, verse, poetry collections and rhymes.",
+      "aliases": [
+        "কবিতা",
+        "কাব্য",
+        "ছড়া",
+        "ছড়া",
+        "poetry",
+        "verse",
+        "rhymes"
+      ],
+      "evidence_terms": [
+        "কবিতা",
+        "কাব্য",
+        "ছড়া",
+        "ছড়া"
+      ],
+      "example_queries": {
+        "bn": "স্বাধীনতা নিয়ে কবিতা ও ছড়া",
+        "en": "Poetry and rhymes about independence"
+      },
+      "embedding_text": "কবিতা, কাব্য ও ছড়া. Poetry and rhymes. Poems, verse, poetry collections and rhymes. Keywords: কবিতা, কাব্য, ছড়া, ছড়া, poetry, verse, rhymes.",
+      "title_evidence_book_count": 62,
+      "representative_books": [
+        {
+          "source_record": 212,
+          "title": "মুক্তিযুদ্ধের কবিতা",
+          "author": "আবুল হাসনাত",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 357,
+          "title": "মুক্তিযুদ্ধের ছড়া কবিতা",
+          "author": "রোকেয়া খাতুন রুবী",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "essay",
+      "facet": "form",
+      "group_id": "formats",
+      "label_bn": "প্রবন্ধ ও নিবন্ধ",
+      "label_en": "Essays and articles",
+      "description": "Essays, analytical articles, columns and collected prose commentary.",
+      "aliases": [
+        "প্রবন্ধ",
+        "নিবন্ধ",
+        "কলাম",
+        "essay",
+        "articles"
+      ],
+      "evidence_terms": [
+        "প্রবন্ধ",
+        "নিবন্ধ",
+        "কলাম"
+      ],
+      "example_queries": {
+        "bn": "সমাজ ও সংস্কৃতি নিয়ে প্রবন্ধ",
+        "en": "Essays about society and culture"
+      },
+      "embedding_text": "প্রবন্ধ ও নিবন্ধ. Essays and articles. Essays, analytical articles, columns and collected prose commentary. Keywords: প্রবন্ধ, নিবন্ধ, কলাম, essay, articles.",
+      "title_evidence_book_count": 19,
+      "representative_books": [
+        {
+          "source_record": 835,
+          "title": "সময়ের মুখোমুখি : বামপন্থা, মক্তিযুদ্ধ ও বুদ্ধিজীবীদের ভূমিকা সম্পর্কে বিতর্কমূলক নিবন্ধের সংকলন",
+          "author": "হাসান শফি",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 5070,
+          "title": "নির্বাচিত রাজনৈতিক প্রবন্ধ",
+          "author": "আহমদ ছফা",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "research",
+      "facet": "form",
+      "group_id": "formats",
+      "label_bn": "গবেষণা ও বিশ্লেষণ",
+      "label_en": "Research and analytical studies",
+      "description": "Research-based studies, theses and analytical investigations of a topic.",
+      "aliases": [
+        "গবেষণা",
+        "অভিসন্দর্ভ",
+        "বিশ্লেষণ",
+        "research",
+        "thesis",
+        "analytical study"
+      ],
+      "evidence_terms": [
+        "গবেষণা",
+        "অভিসন্দর্ভ",
+        "বিশ্লেষণ"
+      ],
+      "example_queries": {
+        "bn": "ভাষা আন্দোলন নিয়ে গবেষণাগ্রন্থ",
+        "en": "Research studies about the Language Movement"
+      },
+      "embedding_text": "গবেষণা ও বিশ্লেষণ. Research and analytical studies. Research-based studies, theses and analytical investigations of a topic. Keywords: গবেষণা, অভিসন্দর্ভ, বিশ্লেষণ, research, thesis, analytical study.",
+      "title_evidence_book_count": 13,
+      "representative_books": [
+        {
+          "source_record": 1050,
+          "title": "তাত্ত্বিক বিশ্লেষণে আমাদের স্বাধীনতা সংগ্রাম",
+          "author": "ওমর খালেদ রুমি",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 1971,
+          "title": "জীবন আমার বোন: মূল্যায়ন ও বিশ্লেষণ",
+          "author": "মাহমুদুল হক",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "reference",
+      "facet": "form",
+      "group_id": "formats",
+      "label_bn": "অভিধান, তথ্যকোষ ও রেফারেন্স",
+      "label_en": "Dictionaries, encyclopedias and reference",
+      "description": "Works designed for consultation, including dictionaries, encyclopedias and glossaries.",
+      "aliases": [
+        "অভিধান",
+        "তথ্যকোষ",
+        "বিশ্বকোষ",
+        "পরিভাষা",
+        "dictionary",
+        "encyclopedia",
+        "reference"
+      ],
+      "evidence_terms": [
+        "অভিধান",
+        "তথ্যকোষ",
+        "বিশ্বকোষ",
+        "পরিভাষা"
+      ],
+      "example_queries": {
+        "bn": "অর্থনীতির পরিভাষা শেখার অভিধান",
+        "en": "A reference book explaining economic terminology"
+      },
+      "embedding_text": "অভিধান, তথ্যকোষ ও রেফারেন্স. Dictionaries, encyclopedias and reference. Works designed for consultation, including dictionaries, encyclopedias and glossaries. Keywords: অভিধান, তথ্যকোষ, বিশ্বকোষ, পরিভাষা, dictionary, encyclopedia, reference.",
+      "title_evidence_book_count": 11,
+      "representative_books": [
+        {
+          "source_record": 4432,
+          "title": "ক্রুসেড বিশ্বকোষ",
+          "author": "ড. আলী মুহাম্মদ সাল্লাবি",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 6675,
+          "title": "বাউল-লালন পরিভাষা",
+          "author": "ড. মোঃ আবদুল করিম মিঞা",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "interview",
+      "facet": "form",
+      "group_id": "formats",
+      "label_bn": "সাক্ষাৎকার",
+      "label_en": "Interviews",
+      "description": "Interviews, conversations and question-and-answer collections.",
+      "aliases": [
+        "সাক্ষাৎকার",
+        "সাক্ষাত্কার",
+        "ইন্টারভিউ",
+        "কথোপকথন",
+        "interviews",
+        "conversations"
+      ],
+      "evidence_terms": [
+        "সাক্ষাৎকার",
+        "সাক্ষাত্কার",
+        "ইন্টারভিউ"
+      ],
+      "example_queries": {
+        "bn": "চলচ্চিত্র নির্মাতাদের সাক্ষাৎকার",
+        "en": "Interviews with filmmakers"
+      },
+      "embedding_text": "সাক্ষাৎকার. Interviews. Interviews, conversations and question-and-answer collections. Keywords: সাক্ষাৎকার, সাক্ষাত্কার, ইন্টারভিউ, কথোপকথন, interviews, conversations.",
+      "title_evidence_book_count": 54,
+      "representative_books": [
+        {
+          "source_record": 8749,
+          "title": "অর্ধশত সাক্ষাৎকারে আল মাহমুদ",
+          "author": "সরদার আবদুর রহমান",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 7980,
+          "title": "অবয়বধর্মী চিত্রকলা : সাক্ষাৎকারে সম্ভাবনার সুত্র",
+          "author": "রাশেদ সুখন",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "letters",
+      "facet": "form",
+      "group_id": "formats",
+      "label_bn": "চিঠিপত্র",
+      "label_en": "Letters and correspondence",
+      "description": "Personal letters, correspondence and edited collections of letters.",
+      "aliases": [
+        "চিঠিপত্র",
+        "চিঠি",
+        "পত্রাবলি",
+        "পত্রগুচ্ছ",
+        "letters",
+        "correspondence"
+      ],
+      "evidence_terms": [
+        "চিঠিপত্র",
+        "চিঠি",
+        "পত্রাবলি",
+        "পত্রগুচ্ছ"
+      ],
+      "example_queries": {
+        "bn": "রবীন্দ্রনাথের চিঠিপত্র",
+        "en": "Collections of Tagore's letters"
+      },
+      "embedding_text": "চিঠিপত্র. Letters and correspondence. Personal letters, correspondence and edited collections of letters. Keywords: চিঠিপত্র, চিঠি, পত্রাবলি, পত্রগুচ্ছ, letters, correspondence.",
+      "title_evidence_book_count": 36,
+      "representative_books": [
+        {
+          "source_record": 8571,
+          "title": "সুকান্তের গল্পসমগ্র ও পত্রগুচ্ছ",
+          "author": "সুকান্ত ভট্টাচার্য",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 7698,
+          "title": "নজরুলের পত্রাবলি",
+          "author": "কাজী নজরুল ইসলাম",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "anthology",
+      "facet": "form",
+      "group_id": "formats",
+      "label_bn": "সংকলন ও রচনাসমগ্র",
+      "label_en": "Anthologies and collected works",
+      "description": "Selected or collected writings, multi-author anthologies and complete works.",
+      "aliases": [
+        "সংকলন",
+        "সমগ্র",
+        "রচনাবলি",
+        "নির্বাচিত",
+        "anthology",
+        "collected works"
+      ],
+      "evidence_terms": [
+        "সংকলন",
+        "সমগ্র",
+        "রচনাবলি",
+        "রচনাবলী",
+        "নির্বাচিত"
+      ],
+      "example_queries": {
+        "bn": "মুক্তিযুদ্ধের নির্বাচিত গল্পের সংকলন",
+        "en": "An anthology of selected Liberation War stories"
+      },
+      "embedding_text": "সংকলন ও রচনাসমগ্র. Anthologies and collected works. Selected or collected writings, multi-author anthologies and complete works. Keywords: সংকলন, সমগ্র, রচনাবলি, নির্বাচিত, anthology, collected works.",
+      "title_evidence_book_count": 140,
+      "representative_books": [
+        {
+          "source_record": 1860,
+          "title": "নির্বাচিত কলাম",
+          "author": "আহমদ রফিক",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 3495,
+          "title": "নির্বাচিত সৌরভ",
+          "author": "খান মাহবুব",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "translation",
+      "facet": "form",
+      "group_id": "formats",
+      "label_bn": "অনুবাদ",
+      "label_en": "Translations",
+      "description": "Works translated from another language; language of origin should be verified separately.",
+      "aliases": [
+        "অনুবাদ",
+        "অনূদিত",
+        "ভাষান্তর",
+        "translation",
+        "translated books"
+      ],
+      "evidence_terms": [
+        "অনুবাদ",
+        "অনূদিত",
+        "ভাষান্তর"
+      ],
+      "example_queries": {
+        "bn": "বাংলায় অনূদিত বিশ্ব ইতিহাসের বই",
+        "en": "World history books translated into Bengali"
+      },
+      "embedding_text": "অনুবাদ. Translations. Works translated from another language; language of origin should be verified separately. Keywords: অনুবাদ, অনূদিত, ভাষান্তর, translation, translated books.",
+      "title_evidence_book_count": 2,
+      "representative_books": [
+        {
+          "source_record": 9170,
+          "title": "অনূদিত কথাসমগ্র : বিশ্ববরেণ্য ২৫ জনের সাক্ষাৎকার",
+          "author": "রাজু আলাউদ্দিন",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 8437,
+          "title": "গবেষণা সিরিজ-৩৫পৃথিবীর শ্রেষ্ঠতম ব্যক্তির একমাত্র হাজ্জের ভাষণ যুগের জ্ঞানের ভিত্তিতে অনুবাদ ও শি",
+          "author": "প্রফেসর ডাঃ মোঃ মতিয়ার রহমান",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "play",
+      "facet": "form",
+      "group_id": "formats",
+      "label_bn": "নাটক",
+      "label_en": "Plays",
+      "description": "Dramatic texts and scripts; distinguish these from books analysing theatre.",
+      "aliases": [
+        "নাটক",
+        "নাটিকা",
+        "নাট্যগ্রন্থ",
+        "play",
+        "drama",
+        "script"
+      ],
+      "evidence_terms": [
+        "মুক্তিযুদ্ধের তিন নাটক"
+      ],
+      "example_queries": {
+        "bn": "মুক্তিযুদ্ধ নিয়ে লেখা নাটক",
+        "en": "Plays about the Liberation War"
+      },
+      "embedding_text": "নাটক. Plays. Dramatic texts and scripts; distinguish these from books analysing theatre. Keywords: নাটক, নাটিকা, নাট্যগ্রন্থ, play, drama, script.",
+      "title_evidence_book_count": 1,
+      "representative_books": [
+        {
+          "source_record": 1311,
+          "title": "মুক্তিযুদ্ধের তিন নাটক",
+          "author": "আবদুল মান্নান",
+          "evidence_field": "Book Name"
+        }
+      ]
+    },
+    {
+      "id": "children_young_adults",
+      "facet": "audience",
+      "group_id": "audiences",
+      "label_bn": "শিশু-কিশোর",
+      "label_en": "Children and young adults",
+      "description": "Books explicitly intended for children or young readers; combine with subject and form.",
+      "aliases": [
+        "শিশু",
+        "কিশোর",
+        "ছোটদের",
+        "শিশুতোষ",
+        "children",
+        "young adults"
+      ],
+      "evidence_terms": [
+        "ছোটদের",
+        "কিশোর",
+        "শিশু",
+        "শিশুতোষ"
+      ],
+      "example_queries": {
+        "bn": "কিশোরদের জন্য মুক্তিযুদ্ধের গল্প",
+        "en": "Liberation War stories for young readers"
+      },
+      "embedding_text": "শিশু-কিশোর. Children and young adults. Books explicitly intended for children or young readers; combine with subject and form. Keywords: শিশু, কিশোর, ছোটদের, শিশুতোষ, children, young adults.",
+      "title_evidence_book_count": 219,
+      "representative_books": [
+        {
+          "source_record": 9060,
+          "title": "শিশু-কিশোরদের নজরুল",
+          "author": "সাকিব জামাল",
+          "evidence_field": "Book Name"
+        },
+        {
+          "source_record": 9079,
+          "title": "কিশোরদের নওয়াব সলিমুল্লাহ",
+          "author": "ড. মোঃ আনোয়ার হোসেন",
+          "evidence_field": "Book Name"
+        }
+      ]
+    }
+  ]
+}

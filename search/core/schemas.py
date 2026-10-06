@@ -301,6 +301,9 @@ class SearchResponse(BaseModel):
     rerank_backend: str = ""
     rerank_fallback: str = ""
     index_generation: str = ""
+    # Offline ablation on the identical shortlist, with only the semantic signal removed.
+    # Populated only for an explicit research request; never a second retrieval run.
+    rerank_ablation: list[str] = Field(default_factory=list)
 
 
 class SearchOptions(BaseModel):
@@ -312,3 +315,4 @@ class SearchOptions(BaseModel):
     shortlist_size: int | None = Field(default=None, ge=1, le=100)
     trace_rerank: bool = False
     trace: bool | None = None
+    compare_rerank: bool = False

@@ -1,0 +1,550 @@
+BOOK SEARCH PROJECT — CHAT RUNBOOK
+==================================
+
+Compiled: 2026-10-06
+
+This document consolidates the commands, configuration, troubleshooting conclusions,
+and implementation notes discussed in this chat. Run commands from the directory that
+contains cli.py unless a command says otherwise.
+
+
+1. ENRICHMENT COMMANDS
+======================
+
+Run LLM-assisted enrichment:
+
+    python cli.py enrich
+
+Run deterministic dictionary-only enrichment:
+
+    python cli.py enrich --no-llm
+
+Resume enrichment:
+
+    python cli.py enrich
+
+Enrichment is resumable. Books written in completed batches are skipped when the command
+is restarted.
+
+Process only a limited number of remaining books:
+
+    python cli.py enrich --limit 100
+
+Discard every existing enrichment record and regenerate all books:
+
+    python cli.py enrich --redo
+
+WARNING: --redo removes the existing enrichment artifact before regenerating it. Use it
+only when all completed records need to be recalculated.
+
+
+2. ENRICHMENT WARNING EXPLANATION
+=================================
+
+Example warning:
+
+    WARNING search.llm: Enrichment truncated -- the model used its whole budget
+    (2400 tokens) before answering; raise BOOKSEARCH_LLM_REASONING_BUDGET
+    WARNING search.llm: Could not parse Enrichment from model output: ...
+
+This is a recoverable warning, not a process crash. The progress bar continues.
+
+The 2400-token total comes from:
+
+    1500 structured-answer tokens + 900 default reasoning tokens = 2400
+
+For a valid LLM response:
+
+    dictionary-derived tags + parsed LLM enrichment are merged and stored.
+
+For a truncated or malformed LLM response:
+
+    - The incomplete LLM JSON is discarded in full.
+    - The parser returns an empty Enrichment object.
+    - Dictionary-derived enrichment is retained and stored.
+    - The current record is still labelled method="llm", even though only the
+      dictionary fallback may have contributed useful fields.
+    - The record has a valid input fingerprint and is considered complete on a normal
+      resume. A normal rerun will therefore not retry it.
+
+The repetitive text such as //////, repeated words, or unfinished JSON indicates model
+generation degeneration. A larger budget may help truncation, but changing to a stronger
+instruction-following or non-reasoning model may be necessary if repetition continues.
+
+Bengali text displayed as sequences such as "à¦..." is a separate terminal/log encoding
+problem. It is not the cause of JSON truncation.
+
+
+3. ENRICHMENT STORAGE
+=====================
+
+Default file:
+
+    artifacts/enrichment.jsonl
+
+Absolute path in this workspace:
+
+    E:\L4-T1\Thesis\Github-v\Natural-Language-query-based-book-search-engine\artifacts\enrichment.jsonl
+
+Each JSONL line contains approximately:
+
+    {
+      "book_id": "...",
+      "enrichment": { ... },
+      "input_fingerprint": "...",
+      "method": "llm"
+    }
+
+The artifact directory changes if BOOKSEARCH_ARTIFACTS_DIR is overridden.
+
+With the default BOOKSEARCH_LLM_WORKERS=1, enrichment writes after batches of four books.
+An interruption can only lose the unfinished batch, not previously appended batches.
+
+
+4. SETTING THE LLM REASONING BUDGET
+===================================
+
+Environment settings are read when Python starts. Changing an environment variable does
+not alter an already-running enrichment process. Stop it with Ctrl+C, configure the same
+terminal that will launch Python, verify the effective setting, and restart.
+
+Linux/macOS, temporary for the current shell:
+
+    export BOOKSEARCH_LLM_REASONING_BUDGET=4096
+    python -c 'from config import settings; print(settings.llm_reasoning_budget)'
+    python cli.py enrich
+
+Expected verification output:
+
+    4096
+
+With a 4096 reasoning budget, enrichment's total completion allowance is:
+
+    1500 + 4096 = 5596 tokens
+
+Therefore, a later truncation warning should say 5596 tokens rather than 2400.
+
+PowerShell, temporary for the current shell:
+
+    $env:BOOKSEARCH_LLM_REASONING_BUDGET = "4096"
+    python -c "from config import settings; print(settings.llm_reasoning_budget)"
+    python cli.py enrich
+
+Permanent .env configuration:
+
+Create .env in the same directory as cli.py and add:
+
+    BOOKSEARCH_LLM_REASONING_BUDGET=4096
+
+Linux command to create .env from the example and append this setting:
+
+    cp .env.example .env
+    printf '\nBOOKSEARCH_LLM_REASONING_BUDGET=4096\n' >> .env
+
+If .env exists already, edit it instead of copying over it.
+
+If the verification command still prints 900, the variable/file is not being loaded by
+that process. Common causes:
+
+    - .env is not in the working directory used to launch Python.
+    - The variable was set in a different terminal.
+    - The server/process was not restarted.
+    - A service, IDE, container, or process manager has its own environment.
+    - On PowerShell, "set NAME=value" was used instead of $env:NAME="value".
+
+
+5. BUILDING AND CHECKING THE SEARCH ENGINE
+==========================================
+
+Check dependencies, LM Studio connectivity, loaded models, and artifacts:
+
+    python cli.py doctor
+
+Build indexes:
+
+    python cli.py build-index
+
+Build indexes without the vector index:
+
+    python cli.py build-index --no-vector
+
+Rebuild vector embeddings from scratch:
+
+    python cli.py build-index --redo-vector
+
+
+6. STARTING THE FRONTEND
+========================
+
+Start the frontend with normal LLM access:
+
+    python cli.py serve
+
+Bind to all network interfaces on port 8000:
+
+    python cli.py serve --host 0.0.0.0 --port 8000
+
+Rules-only/no-LM-Studio mode:
+
+    python cli.py serve --no-llm
+
+Do not use --no-llm when BOOKSEARCH_RERANKER_BACKEND=lmstudio; it prevents creation of
+the LM Studio reranker.
+
+
+7. FRONTEND RERANKING BEHAVIOR
+==============================
+
+Frontend searches call POST /api/search. Second-stage reranking runs automatically when
+enabled.
+
+Default configuration:
+
+    BOOKSEARCH_USE_RERANKER=true
+    BOOKSEARCH_RERANKER_BACKEND=crossencoder
+    BOOKSEARCH_LLM_QUERY_UNDERSTANDING=never
+    BOOKSEARCH_RAG_FUSION=false
+
+Therefore, the default frontend uses the BAAI/bge-reranker-v2-m3 cross-encoder. It does
+not call LM Studio for ordinary queries. Seeing no LM Studio log is expected under the
+default configuration.
+
+BOOKSEARCH_LLM_QUERY_UNDERSTANDING and BOOKSEARCH_RERANKER_BACKEND are independent.
+Setting query understanding to "never" does not disable the selected reranker.
+
+Supported reranker backends:
+
+    crossencoder   default multilingual cross-encoder
+    lmstudio       pointwise LM Studio Yes/No relevance scoring
+    llm            deprecated batch JSON grader
+    none           preserve fusion order
+
+
+8. ENABLE LM STUDIO RERANKING ON LINUX
+======================================
+
+Temporary configuration in the current shell:
+
+    export BOOKSEARCH_RERANKER_BACKEND=lmstudio
+    export BOOKSEARCH_USE_RERANKER=true
+    export BOOKSEARCH_WEB_DIAGNOSTICS=true
+
+Verify the effective settings:
+
+    python -c 'from config import settings; print(settings.reranker_backend, settings.use_reranker, settings.web_diagnostics)'
+
+Expected output:
+
+    lmstudio True True
+
+Start the server from the same shell:
+
+    python cli.py serve
+
+Permanent .env configuration:
+
+    BOOKSEARCH_RERANKER_BACKEND=lmstudio
+    BOOKSEARCH_USE_RERANKER=true
+    BOOKSEARCH_WEB_DIAGNOSTICS=true
+
+Linux commands to copy the example and append the settings:
+
+    cp .env.example .env
+    printf '\nBOOKSEARCH_RERANKER_BACKEND=lmstudio\nBOOKSEARCH_USE_RERANKER=true\nBOOKSEARCH_WEB_DIAGNOSTICS=true\n' >> .env
+
+If .env already exists, edit it rather than replacing it.
+
+Restart Python after changing these values.
+
+
+9. VERIFY LM STUDIO RERANKING
+=============================
+
+Browser endpoint:
+
+    http://localhost:8000/api/status
+
+Linux formatted status command:
+
+    curl -s http://localhost:8000/api/status | python -m json.tool
+
+Expected status fields when it is working:
+
+    "llm_available": true
+    "reranker_configured": "lmstudio"
+    "reranker_backend": "lmstudio"
+    "reranker_enabled": true
+
+The llm_available field is included when BOOKSEARCH_WEB_DIAGNOSTICS=true.
+
+Search-response diagnostics should include:
+
+    "diagnostics": {
+      "rerank_backend": "lmstudio"
+    }
+
+A successful result should have an empty rerank fallback:
+
+    "rerank": {
+      "fallback": ""
+    }
+
+If fallback contains a message, reranking was disabled, unavailable, or returned invalid
+scores, and fusion order was used.
+
+The frontend caches identical anonymous queries. Repeating the same query may return the
+cached response without producing a new LM Studio request. Use a new query or restart the
+server when verifying calls.
+
+
+10. FRONTEND LM STUDIO ON/OFF CONTROL
+=====================================
+
+The UI was changed during this chat to support per-search enable/disable control.
+
+Modified files:
+
+    static/app.js
+    static/styles.css
+    web.py
+    tests/test_web_options.py
+
+Behavior:
+
+    - A "LM Studio: চালু/বন্ধ" button appears in the search-results toolbar when
+      BOOKSEARCH_RERANKER_BACKEND=lmstudio.
+    - The button is disabled when the configured LM Studio reranker is unavailable.
+    - Enabled state is represented by rerank=1 in the search URL.
+    - Disabled state is represented by rerank=0 in the search URL.
+    - The frontend sends a boolean rerank field to POST /api/search.
+    - The API now accepts the rerank option even when web diagnostics are disabled.
+    - Filter changes and pagination preserve the URL option.
+    - The cache key includes search options, so reranked and non-reranked requests are
+      cached separately.
+
+After pulling/copying these source changes to the Linux computer:
+
+    1. Restart python cli.py serve.
+    2. Hard-refresh the browser.
+    3. Open a search-results page.
+    4. Toggle LM Studio on or off and observe the URL and LM Studio request log.
+
+Local validation completed during implementation:
+
+    python -m compileall -q web.py tests/test_web_options.py
+    git diff --check
+
+These passed. Full pytest execution was unavailable on the development machine because
+pytest was not installed. JavaScript checking with node --check was unavailable because
+Node.js was not installed.
+
+On a machine with project dependencies, run:
+
+    pytest -q
+
+Or only the new web-option tests:
+
+    pytest -q tests/test_web_options.py
+
+
+11. SEARCH-EVALUATION METRICS
+=============================
+
+Evaluation is currently offline; the frontend does not display objective retrieval
+metrics. Individual hit "score" and "relevance" fields are internal ranking signals,
+not quality measurements against gold judgments.
+
+Recommended stable-ID evaluator: evaluation.py
+
+Implemented metrics:
+
+    - nDCG@10
+    - MRR@10
+    - candidate pooled Recall@60
+    - judgment coverage
+    - warm median latency
+    - warm p95 latency
+    - overall and per-category aggregation
+    - deltas against a baseline report
+
+The included query fixture contains Bangla, English, exact-title, filtered, and semantic
+query categories:
+
+    eval/queries.json
+
+The stable judgment file is currently an empty placeholder:
+
+    eval/judgments_book_ids.json
+
+It must be populated with reviewed book-ID judgments before stable-ID nDCG/MRR/recall
+numbers are meaningful. Results and judgments must use the same catalogue fingerprint.
+
+
+12. STABLE-ID EVALUATION COMMANDS
+=================================
+
+Migrate legacy rank judgments into stable book-ID judgments:
+
+    python evaluation.py migrate \
+      --outputs outputs \
+      --rank-judgments judgments.yaml \
+      --out eval/judgments_book_ids.json
+
+Review unresolved mappings after migration. Do not trust the report until query IDs in
+the result fixture and judgment fixture align and the migrated labels have been checked.
+
+Run the evaluation query fixture:
+
+    python evaluation.py run \
+      --queries eval/queries.json \
+      --out eval/updated-results.json
+
+Score it:
+
+    python evaluation.py score \
+      --results eval/updated-results.json \
+      --judgments eval/judgments_book_ids.json \
+      --out eval/updated-report.json
+
+Compare with a baseline:
+
+    python evaluation.py score \
+      --results eval/updated-results.json \
+      --baseline eval/baseline-results.json \
+      --judgments eval/judgments_book_ids.json \
+      --out eval/comparison.json
+
+
+13. COMPARE LM STUDIO RERANKING WITH NO RERANKING
+=================================================
+
+The following commands start separate Python processes, so each process reads the
+current exported backend setting.
+
+Create a no-reranker baseline:
+
+    export BOOKSEARCH_RERANKER_BACKEND=none
+    python evaluation.py run --queries eval/queries.json --out eval/no-reranker.json
+
+Run the LM Studio reranker:
+
+    export BOOKSEARCH_RERANKER_BACKEND=lmstudio
+    export BOOKSEARCH_USE_RERANKER=true
+    python evaluation.py run --queries eval/queries.json --out eval/lmstudio-reranker.json
+
+Compare the results:
+
+    python evaluation.py score \
+      --results eval/lmstudio-reranker.json \
+      --baseline eval/no-reranker.json \
+      --judgments eval/judgments_book_ids.json \
+      --out eval/lmstudio-comparison.json
+
+Only interpret this comparison after eval/judgments_book_ids.json has reviewed judgments
+for the same query IDs and catalogue fingerprint.
+
+
+14. LEGACY OUTPUT EVALUATION
+============================
+
+The repository currently contains 16 output_N.txt files and a non-empty judgments.yaml.
+
+Score human rank judgments with precision at depth 10:
+
+    python score_outputs.py --depth 10
+
+Default outputs:
+
+    outputs/scores.csv
+    outputs/scores.html
+
+Without --depth, score_outputs.py reports "precision up to the last relevant hit." This
+is not directly comparable across queries in the same way as fixed Precision@k, so prefer
+--depth 10 when making comparisons.
+
+Freeze rank-keyed judgments into title-keyed judgments before regenerating output files:
+
+    python score_outputs.py --freeze
+
+Score using frozen title-keyed gold data:
+
+    python score_outputs.py --gold judgments_by_title.yaml --depth 10
+
+
+15. LLM-GRADED NDCG
+===================
+
+score_ndcg.py asks an LM Studio model to assign each result a graded relevance label:
+
+    0 = irrelevant
+    1 = tangentially related
+    2 = relevant
+    3 = excellent match
+
+Run LLM judging and calculate graded nDCG:
+
+    python score_ndcg.py
+
+Specify LM Studio URL and model:
+
+    python score_ndcg.py --base-url http://localhost:1234/v1 --model MODEL_NAME
+
+Score selected queries:
+
+    python score_ndcg.py --queries 1,2
+
+Recalculate from an existing judgements.yaml without calling the model:
+
+    python score_ndcg.py --skip-llm
+
+Mock/test mode:
+
+    python score_ndcg.py --mock --queries 1,2
+
+Default nDCG cutoffs:
+
+    1, 3, 5, 10, 20, 50, 100
+
+Default CSV output:
+
+    outputs/ndcg_scores.csv
+
+LLM-generated judgments can be useful for rapid iteration but should not be treated as
+equivalent to reviewed human relevance labels.
+
+
+16. BATCH SEARCH OUTPUT GENERATION
+==================================
+
+Run all queries in queries.txt and write output_N.txt files:
+
+    python run_queries.py
+
+Useful options:
+
+    python run_queries.py --top-k 100
+    python run_queries.py --start 5
+    python run_queries.py --queries queries.txt --out-dir outputs --top-k 100
+
+The runner loads the engine once, executes each query, writes individual files under
+outputs/, and records detailed query traces under artifacts/query_traces/.
+
+
+17. IMPORTANT OPERATIONAL NOTES
+===============================
+
+    - Restart Python after changing .env or exported settings.
+    - Verify settings using "python -c" from the same shell and Python environment used
+      to start the process.
+    - Containers and services need environment variables configured in their own launch
+      definitions and must be recreated/restarted.
+    - Repeated frontend queries may be served from the anonymous result cache.
+    - A normal enrichment restart skips stored fallback records; --redo is needed to
+      regenerate all of them.
+    - LM Studio reranking and enrichment use different generation paths and settings.
+      BOOKSEARCH_LLM_REASONING_BUDGET is relevant to structured enrichment output, not
+      to the pointwise LM Studio reranker's short Yes/No scoring request.
+    - Keep baseline and updated evaluation runs on the same catalogue/index generation.
+    - Internal ranking scores are not substitutes for nDCG, MRR, recall, or precision
+      calculated against judgments.
+
