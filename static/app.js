@@ -11,6 +11,7 @@ let engineFailure = "";
 let facets = null;
 let activeRequest = null;
 let requestNumber = 0;
+let engineStatus = {};
 
 document.addEventListener("click", event => {
   const link = event.target.closest("a[data-link], a[data-book-link]");
@@ -53,6 +54,7 @@ async function waitForEngine() {
   while (!ready) {
     try {
       const status = await api("/api/status");
+      engineStatus = status;
       ready = !!status.ready;
       announce(status.message || status.stage);
       if (status.state === "failed") {
@@ -153,12 +155,19 @@ async function renderSearch(params) {
   const query = params.get("q") || "";
   document.title = `${query} — বইখোঁজ`;
   const view = params.get("view") === "list" ? "list" : "grid";
+  const showLlmReranker = engineStatus.reranker_configured === "lmstudio";
+  const llmRerankerAvailable = engineStatus.reranker_backend === "lmstudio";
+  const rerank = rerankRequested(params);
   content.innerHTML = `
     <section class="search-page shell">
       <div class="search-heading">
         <div><p class="eyebrow">অনুসন্ধান</p><h1 id="search-title"></h1><p class="result-note" id="result-note">ফলাফল প্রস্তুত হচ্ছে…</p></div>
         <div class="toolbar">
           <button class="tool-button filter-toggle" id="filter-toggle" aria-expanded="false">ফিল্টার</button>
+          ${showLlmReranker ? `<button class="tool-button rerank-toggle" id="rerank-toggle"
+                  aria-pressed="${rerank}" ${llmRerankerAvailable ? "" : "disabled"}
+                  title="${llmRerankerAvailable ? "এই অনুসন্ধানে LM Studio পুনঃক্রম চালু বা বন্ধ করুন" : "LM Studio পুনঃক্রম এখন উপলব্ধ নয়"}">
+                  LM Studio: ${rerank ? "চালু" : "বন্ধ"}</button>` : ""}
           <button class="tool-button" data-view="grid" aria-pressed="${view === "grid"}">গ্রিড</button>
           <button class="tool-button" data-view="list" aria-pressed="${view === "list"}">তালিকা</button>
         </div>
@@ -171,6 +180,7 @@ async function renderSearch(params) {
     </section>`;
   document.querySelector("#search-title").textContent = `“${query}”`;
   bindViewButtons(view);
+  bindRerankToggle(params, rerank);
   buildFilters(params);
   buildChips(params);
 
@@ -187,6 +197,7 @@ async function renderSearch(params) {
       query,
       page: positive(params.get("page"), 1),
       page_size: 12,
+      rerank,
       filters: filtersFromParams(params),
     };
     const data = await api("/api/search", {
@@ -240,7 +251,9 @@ function buildFilters(params) {
   aside.append(years);
   const clear = node("button", "clear-filters", "সব ফিল্টার মুছুন");
   clear.type = "button";
-  clear.addEventListener("click", () => navigate(searchUrl({q: params.get("q"), view: params.get("view")})));
+  clear.addEventListener("click", () => navigate(searchUrl({
+    q: params.get("q"), view: params.get("view"), rerank: params.get("rerank"),
+  })));
   aside.append(clear, dataList("authors-list", facets?.authors || []), dataList("publishers-list", facets?.publishers || []));
 
   aside.querySelectorAll("input,select").forEach(control => control.addEventListener("change", () => {
@@ -391,6 +404,22 @@ function bindViewButtons(current) {
     params.set("view", button.dataset.view);
     navigate(`/search?${params}`);
   }));
+}
+
+function rerankRequested(params) {
+  const requested = params.get("rerank");
+  if (requested === "0") return false;
+  if (requested === "1") return true;
+  return engineStatus.reranker_enabled !== false;
+}
+
+function bindRerankToggle(params, enabled) {
+  document.querySelector("#rerank-toggle")?.addEventListener("click", () => {
+    const next = new URLSearchParams(params);
+    next.set("rerank", enabled ? "0" : "1");
+    next.set("page", "1");
+    navigate(`/search?${next}`);
+  });
 }
 
 function filtersFromParams(params) {

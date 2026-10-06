@@ -82,6 +82,13 @@ class EngineHandle:
             "ready": self.engine is not None,
             "stage": self.stage,
             "books": len(self.engine.records) if self.engine else 0,
+            # The browser uses these non-sensitive capability fields to show the
+            # per-search LM Studio reranker switch only when that backend is configured.
+            "reranker_configured": self.settings.reranker_backend,
+            "reranker_enabled": self.settings.use_reranker,
+            "reranker_backend": (
+                getattr(self.engine.reranker, "name", "") if self.engine else ""
+            ),
             "elapsed_s": round(time.perf_counter() - self.started_at, 1),
             "message": (
                 "অনুসন্ধান পুরোপুরি প্রস্তুত।" if self.state == "ready"
@@ -95,9 +102,6 @@ class EngineHandle:
                 "error": self.error,
                 "ready_in_s": self.ready_in_s,
                 "llm_available": bool(self.engine and self.engine.llm),
-                "reranker_backend": (
-                    getattr(self.engine.reranker, "name", "") if self.engine else ""
-                ),
                 "index_generation": self.engine.index_generation if self.engine else "",
             })
         return payload
@@ -347,7 +351,6 @@ def _parse_options(payload: dict, *, diagnostics: bool) -> SearchOptions:
         raise ValueError("rag_fusion must be a boolean.")
     if not diagnostics:
         plan_mode = None
-        rerank = None
         rag_fusion = None
     return SearchOptions(
         plan_mode=plan_mode, rerank=rerank, rag_fusion=rag_fusion,

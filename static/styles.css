@@ -99,9 +99,11 @@ main { min-height: calc(100vh - 160px); }
 .search-heading { display: flex; justify-content: space-between; align-items: end; gap: 1rem; margin-bottom: 1.2rem; }
 .search-heading h1 { margin: 0; font-size: clamp(1.7rem, 3vw, 2.7rem); }
 .result-note { color: var(--muted); margin: .2rem 0 0; }
-.toolbar { display: flex; gap: .6rem; align-items: center; }
+.toolbar { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .6rem; align-items: center; }
 .tool-button { border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--green); padding: .55rem .75rem; }
 .tool-button[aria-pressed="true"] { color: #fff; background: var(--green); }
+.tool-button:disabled { cursor: not-allowed; opacity: .55; }
+.rerank-toggle { white-space: nowrap; }
 .filter-toggle { display: none; }
 .search-layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 2rem; }
 .filters { align-self: start; position: sticky; top: 98px; padding: 1.1rem; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(255,253,247,.8); }
